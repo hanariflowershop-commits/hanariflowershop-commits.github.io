@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panda Runner</title>
+
+<style>
+html, body {
+  margin:0;
+  padding:0;
+  background:#000;
+  overflow:hidden;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
+  touch-action:manipulation;
+}
+
+canvas{
+  display:block;
+  width:100vw;
+  height:65vh;
+}
+
+#startBar{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  height:70px;
+  background:#111;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+  z-index:10;
+  text-align:center;
+}
+
+.centered{
+  top:50% !important;
+  bottom:auto !important;
+  transform:translateY(-50%);
+  height:auto !important;
+  padding:20px;
+  border-radius:14px;
+  width:85%;
+  left:7.5%;
+}
+
+@media (hover:hover) and (pointer:fine){
+  #startBar{
+    top:65vh;
+    bottom:auto;
+  }
+}
+
+#scoreBox{
+  position:fixed;
+  top:20vh;
+  right:10px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  background:rgba(255,255,255,0.7);
+  padding:9px 15px;
+  border-radius:12px;
+}
+
+#scoreIcon{
+  width:36px;
+  height:36px;
+}
+
+#score{
+  font-size:27px;
+  font-weight:bold;
+  color:#111;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="gameCanvas"></canvas>
+<div id="startBar">TOCAR / SPACE / ENTER</div>
+
+<div id="scoreBox">
+  <img id="scoreIcon" src="retos/Caraiconopanda.png">
+  <span id="score">0</span>
+</div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const scoreText = document.getElementById("score");
+const startBar = document.getElementById("startBar");
+
+const isPC = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+/* 🔊 AUDIO FIX REAL */
+const music = document.createElement("audio");
+music.src = "https://res.cloudinary.com/dncyr4d1n/video/upload/v1777533798/Vivaldi_s_Winter_The_Four_Seasons_compressed_nvrix6.mp3";
+music.loop = true;
+music.volume = 0.25;
+music.setAttribute("playsinline", "");
+music.setAttribute("webkit-playsinline", "");
+
+let audioStarted = false;
+
+function startMusic(){
+  if(audioStarted) return;
+
+  music.play().then(()=>{
+    audioStarted = true;
+  }).catch(()=>{});
+}
+
+/* 📳 vibración */
+function vibrate(pattern){
+  if(navigator.vibrate){
+    navigator.vibrate(pattern);
+  }
+}
+
+/* pasos */
+let lastStep=0;
+function stepVibration(){
+  const now = Date.now();
+  if(now - lastStep > 200){
+    vibrate(5);
+    lastStep = now;
+  }
+}
+
+/* resize */
+function resize(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight * 0.65;
+}
+resize();
+window.addEventListener("resize", resize);
+
+function load(src){
+  const img = new Image();
+  img.src = src;
+  return img;
+}
+
+/* 🌿 bambus */
+const bambooSprites = [
+  load("retos/bambugordo.png"),
+  load("retos/bambugordonoche.png"),
+  load("retos/bambugorinvierno.png"),
+  load("retos/bambugordootoño.png"),
+  load("retos/bambugordoprimavera.png"),
+  load("retos/bambugordosakuras.png")
+];
+
+/* fondos */
+const backgroundsMobile = [
+  load("retos/fondo1.png"),
+  load("retos/fondo1denoche.png"),
+  load("retos/fondoinvierno.png"),
+  load("retos/fondootoño.png"),
+  load("retos/fondoprimavera.png"),
+  load("retos/fondosakuras.png")
+];
+
+const backgroundsPC = [
+  load("retos/fondo1horizontal.png"),
+  load("retos/fondo1denochehorizontal.png"),
+  load("retos/fondoinviernohorizontal.png"),
+  load("retos/fondootoñohorizontal.png"),
+  load("retos/fondoprimaverahorizontal.png"),
+  load("retos/fondosakurashorizontal.png")
+];
+
+const backgrounds = isPC ? backgroundsPC : backgroundsMobile;
+
+function getBGIndex(){
+  if(score >= 910) return 5;
+  return Math.floor(score / 90) % 5;
+}
+
+function drawBG(){
+  const bg = backgrounds[getBGIndex()];
+  if(bg.complete){
+    const scale = Math.max(canvas.width/bg.width, canvas.height/bg.height);
+    ctx.drawImage(bg,
+      (canvas.width - bg.width * scale)/2,
+      (canvas.height - bg.height * scale)/2,
+      bg.width * scale,
+      bg.height * scale
+    );
+  }
+}
+
+/* 🐼 */
+const sprites = {
+  run1: load("retos/corriendo1.png"),
+  run2: load("retos/corriendo2.png"),
+  midAir: load("retos/enmediodelsalto.png"),
+  fall: load("retos/cayendo.png"),
+  idle: load("retos/Quietodefrente.png"),
+  dead: load("retos/muerte1.png")
+};
+
+let gameStarted=false, gameOver=false, gameWin=false, score=0;
+
+let dino={x:50,y:0,w:60,h:60,vy:0,g:0.8,jump:-14,grounded:true,frame:0};
+
+function groundY(){ return canvas.height-dino.h-10; }
+dino.y=groundY();
+
+let obstacles=[], speed=4.6, frame=0;
+
+/* 🏆 */
+function showVictory(){
+  const code = "HC" + Math.floor(Math.random()*90000+10000);
+
+  startBar.classList.add("centered");
+  startBar.style.display="flex";
+
+  startBar.innerHTML = `
+    🏆 ¡VICTORIA!<br>
+    Liur y Charni están orgullosos de ti<br><br>
+    🎁 Ganaste un Hana Café<br>
+    🎟 Código: <b>${code}</b><br>
+    <small>Presenta captura</small>
+  `;
+}
+
+function drawDino(){
+  let img, scale=1;
+
+  if(!gameStarted){ img=sprites.idle; }
+  else if(gameOver){ img=sprites.dead; scale=1.1; }
+  else{
+    if(!dino.grounded){
+      img = dino.vy<0 ? sprites.midAir : sprites.fall;
+      scale=1.2;
+    } else {
+      img=(Math.floor(dino.frame/8)%2===0)?sprites.run1:sprites.run2;
+      stepVibration();
+    }
+  }
+
+  ctx.drawImage(img,dino.x,dino.y-(dino.h*scale-dino.h),dino.w*scale,dino.h*scale);
+}
+
+function drawObs(){
+  if(gameWin) return;
+  const sprite = bambooSprites[getBGIndex()];
+  obstacles.forEach(o=>{
+    if(sprite.complete){
+      ctx.drawImage(sprite,o.x,o.y,o.w,o.h);
+    }
+  });
+}
+
+function update(){
+  if(!gameStarted||gameOver) return;
+
+  frame++; dino.frame++;
+  score+=0.1;
+  scoreText.innerText=Math.floor(score);
+
+  speed = 4.6 + Math.floor(score/200)*0.5;
+
+  if(score>=1000&&!gameWin){
+    gameWin=true;
+    showVictory();
+  }
+
+  if(frame%120===0&&!gameWin){
+    obstacles.push({x:canvas.width,y:canvas.height-55,w:18,h:50});
+  }
+
+  dino.vy+=dino.g;
+  dino.y+=dino.vy;
+
+  if(dino.y>=groundY()){
+    dino.y=groundY(); dino.vy=0; dino.grounded=true;
+  }
+
+  obstacles.forEach(o=>o.x-=speed);
+
+  obstacles.forEach(o=>{
+    if(dino.x<o.x+o.w&&dino.x+dino.w>o.x&&dino.y<o.y+o.h&&dino.y+dino.h>o.y){
+      gameOver=true;
+      music.pause();
+      vibrate([60,40,80]);
+      startBar.innerText="REINICIAR / SPACE";
+      startBar.style.display="flex";
+    }
+  });
+
+  obstacles=obstacles.filter(o=>o.x+o.w>0);
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawBG(); drawDino(); drawObs();
+}
+
+function loop(){ update(); draw(); requestAnimationFrame(loop); }
+
+function jump(){
+  if(gameStarted&&!gameOver&&dino.grounded){
+    dino.vy=dino.jump;
+    dino.grounded=false;
+  }
+}
+
+/* INPUT */
+function handleInput(e){
+  e.preventDefault();
+
+  startMusic(); // 🔥 FIX REAL
+
+  if(!gameStarted){
+    gameStarted=true;
+    if(isPC) startBar.style.display="none";
+  } else if(gameOver){
+    location.reload();
+  } else {
+    jump();
+  }
+}
+
+canvas.addEventListener("touchstart", handleInput,{passive:false});
+canvas.addEventListener("click", handleInput);
+startBar.addEventListener("touchstart", handleInput,{passive:false});
+startBar.addEventListener("click", handleInput);
+
+window.addEventListener("keydown", e=>{
+  if(e.code==="Space"||e.code==="ArrowUp"||e.code==="Enter"){
+    handleInput(e);
+  }
+});
+
+requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>
