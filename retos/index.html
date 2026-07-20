@@ -21,6 +21,7 @@ canvas{
   display:block;
   width:100vw;
   height:65vh;
+  background:#111;
 }
 
 #startBar{
@@ -87,7 +88,7 @@ canvas{
 <div id="startBar">TOCAR / SPACE / ENTER</div>
 
 <div id="scoreBox">
-  <img id="scoreIcon" src="retos/Caraiconopanda.png">
+  <img id="scoreIcon" src="retos/Caraiconopanda.png" alt="Panda">
   <span id="score">0</span>
 </div>
 
@@ -99,7 +100,7 @@ const startBar = document.getElementById("startBar");
 
 const isPC = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
-/* 🔊 AUDIO FIX REAL */
+/* 🔊 AUDIO */
 const music = document.createElement("audio");
 music.src = "https://res.cloudinary.com/dncyr4d1n/video/upload/v1777533798/Vivaldi_s_Winter_The_Four_Seasons_compressed_nvrix6.mp3";
 music.loop = true;
@@ -111,20 +112,14 @@ let audioStarted = false;
 
 function startMusic(){
   if(audioStarted) return;
-
-  music.play().then(()=>{
-    audioStarted = true;
-  }).catch(()=>{});
+  music.play().then(()=>{ audioStarted = true; }).catch(()=>{});
 }
 
-/* 📳 vibración */
+/* 📳 Vibración */
 function vibrate(pattern){
-  if(navigator.vibrate){
-    navigator.vibrate(pattern);
-  }
+  if(navigator.vibrate){ navigator.vibrate(pattern); }
 }
 
-/* pasos */
 let lastStep=0;
 function stepVibration(){
   const now = Date.now();
@@ -134,7 +129,7 @@ function stepVibration(){
   }
 }
 
-/* resize */
+/* Resize */
 function resize(){
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight * 0.65;
@@ -142,13 +137,14 @@ function resize(){
 resize();
 window.addEventListener("resize", resize);
 
-function load(src){
+// Función que codifica automáticamente caracteres especiales como la 'ñ'
+function load(path){
   const img = new Image();
-  img.src = src;
+  img.src = encodeURI(path);
   return img;
 }
 
-/* 🌿 bambus */
+/* 🌿 Bambús (Nombres exactos de tu carpeta) */
 const bambooSprites = [
   load("retos/bambugordo.png"),
   load("retos/bambugordonoche.png"),
@@ -158,7 +154,7 @@ const bambooSprites = [
   load("retos/bambugordosakuras.png")
 ];
 
-/* fondos */
+/* Fondos Móvil */
 const backgroundsMobile = [
   load("retos/fondo1.png"),
   load("retos/fondo1denoche.png"),
@@ -168,6 +164,7 @@ const backgroundsMobile = [
   load("retos/fondosakuras.png")
 ];
 
+/* Fondos PC (Se usó .png para fondo1horizontal) */
 const backgroundsPC = [
   load("retos/fondo1horizontal.png"),
   load("retos/fondo1denochehorizontal.png"),
@@ -186,7 +183,7 @@ function getBGIndex(){
 
 function drawBG(){
   const bg = backgrounds[getBGIndex()];
-  if(bg.complete){
+  if(bg && bg.complete && bg.naturalWidth !== 0){
     const scale = Math.max(canvas.width/bg.width, canvas.height/bg.height);
     ctx.drawImage(bg,
       (canvas.width - bg.width * scale)/2,
@@ -194,10 +191,14 @@ function drawBG(){
       bg.width * scale,
       bg.height * scale
     );
+  } else {
+    // Si la imagen de fondo aún no carga, dibuja un fondo temporal
+    ctx.fillStyle = "#1a1a1a";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 }
 
-/* 🐼 */
+/* 🐼 Personaje (Respetando Mayúsculas exactas como 'Quietodefrente.png') */
 const sprites = {
   run1: load("retos/corriendo1.png"),
   run2: load("retos/corriendo2.png"),
@@ -216,13 +217,10 @@ dino.y=groundY();
 
 let obstacles=[], speed=4.6, frame=0;
 
-/* 🏆 */
 function showVictory(){
   const code = "HC" + Math.floor(Math.random()*90000+10000);
-
   startBar.classList.add("centered");
   startBar.style.display="flex";
-
   startBar.innerHTML = `
     🏆 ¡VICTORIA!<br>
     Liur y Charni están orgullosos de ti<br><br>
@@ -247,15 +245,24 @@ function drawDino(){
     }
   }
 
-  ctx.drawImage(img,dino.x,dino.y-(dino.h*scale-dino.h),dino.w*scale,dino.h*scale);
+  if(img && img.complete && img.naturalWidth !== 0){
+    ctx.drawImage(img,dino.x,dino.y-(dino.h*scale-dino.h),dino.w*scale,dino.h*scale);
+  } else {
+    // Cuadro de reemplazo visible si la imagen no ha cargado
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(dino.x, dino.y, dino.w, dino.h);
+  }
 }
 
 function drawObs(){
   if(gameWin) return;
   const sprite = bambooSprites[getBGIndex()];
   obstacles.forEach(o=>{
-    if(sprite.complete){
+    if(sprite && sprite.complete && sprite.naturalWidth !== 0){
       ctx.drawImage(sprite,o.x,o.y,o.w,o.h);
+    } else {
+      ctx.fillStyle = "#4CAF50";
+      ctx.fillRect(o.x, o.y, o.w, o.h);
     }
   });
 }
@@ -314,11 +321,9 @@ function jump(){
   }
 }
 
-/* INPUT */
 function handleInput(e){
   e.preventDefault();
-
-  startMusic(); // 🔥 FIX REAL
+  startMusic();
 
   if(!gameStarted){
     gameStarted=true;
