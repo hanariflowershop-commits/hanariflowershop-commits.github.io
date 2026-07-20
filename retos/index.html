@@ -21,7 +21,7 @@ canvas{
   display:block;
   width:100vw;
   height:65vh;
-  background:#111;
+  background:#111; /* Fondo oscuro por defecto */
 }
 
 #startBar{
@@ -88,7 +88,8 @@ canvas{
 <div id="startBar">TOCAR / SPACE / ENTER</div>
 
 <div id="scoreBox">
-  <img id="scoreIcon" src="retos/Caraiconopanda.png" alt="Panda">
+  <!-- RUTA RELATIVA AL DOMINIO CON / INICIAL -->
+  <img id="scoreIcon" src="/retos/Caraiconopanda.png" alt="Panda">
   <span id="score">0</span>
 </div>
 
@@ -137,41 +138,46 @@ function resize(){
 resize();
 window.addEventListener("resize", resize);
 
-// Función que codifica automáticamente caracteres especiales como la 'ñ'
+// Función de carga robusta: codifica la URI y maneja errores
 function load(path){
   const img = new Image();
-  img.src = encodeURI(path);
+  // El navegador codifica automáticamente la 'ñ' al usar la / inicial
+  img.src = path;
+  img.onerror = () => {
+    // Si falla la carga, mostramos un error claro en la consola F12
+    console.error("No se pudo cargar la textura en la ruta: " + path + ". Asegúrate de que el archivo exista en la carpeta /retos/ y que las mayúsculas coincidan.");
+  };
   return img;
 }
 
-/* 🌿 Bambús (Nombres exactos de tu carpeta) */
+/* 🌿 Bambús (Nombres exactos de tu carpeta con / inicial) */
 const bambooSprites = [
-  load("retos/bambugordo.png"),
-  load("retos/bambugordonoche.png"),
-  load("retos/bambugorinvierno.png"),
-  load("retos/bambugordootoño.png"),
-  load("retos/bambugordoprimavera.png"),
-  load("retos/bambugordosakuras.png")
+  load("/retos/bambugordo.png"),
+  load("/retos/bambugordonoche.png"),
+  load("/retos/bambugorinvierno.png"),
+  load("/retos/bambugordootoño.png"),
+  load("/retos/bambugordoprimavera.png"),
+  load("/retos/bambugordosakuras.png")
 ];
 
 /* Fondos Móvil */
 const backgroundsMobile = [
-  load("retos/fondo1.png"),
-  load("retos/fondo1denoche.png"),
-  load("retos/fondoinvierno.png"),
-  load("retos/fondootoño.png"),
-  load("retos/fondoprimavera.png"),
-  load("retos/fondosakuras.png")
+  load("/retos/fondo1.png"),
+  load("/retos/fondo1denoche.png"),
+  load("/retos/fondoinvierno.png"),
+  load("/retos/fondootoño.png"),
+  load("/retos/fondoprimavera.png"),
+  load("/retos/fondosakuras.png")
 ];
 
-/* Fondos PC (Se usó .png para fondo1horizontal) */
+/* Fondos PC */
 const backgroundsPC = [
-  load("retos/fondo1horizontal.png"),
-  load("retos/fondo1denochehorizontal.png"),
-  load("retos/fondoinviernohorizontal.png"),
-  load("retos/fondootoñohorizontal.png"),
-  load("retos/fondoprimaverahorizontal.png"),
-  load("retos/fondosakurashorizontal.png")
+  load("/retos/fondo1horizontal.png"),
+  load("/retos/fondo1denochehorizontal.png"),
+  load("/retos/fondoinviernohorizontal.png"),
+  load("/retos/fondootoñohorizontal.png"),
+  load("/retos/fondoprimaverahorizontal.png"),
+  load("/retos/fondosakurashorizontal.png")
 ];
 
 const backgrounds = isPC ? backgroundsPC : backgroundsMobile;
@@ -183,7 +189,8 @@ function getBGIndex(){
 
 function drawBG(){
   const bg = backgrounds[getBGIndex()];
-  if(bg && bg.complete && bg.naturalWidth !== 0){
+  // Solo intentamos dibujar si la imagen está cargada y no es corrupta
+  if(bg && bg.complete && bg.naturalWidth > 0){
     const scale = Math.max(canvas.width/bg.width, canvas.height/bg.height);
     ctx.drawImage(bg,
       (canvas.width - bg.width * scale)/2,
@@ -192,20 +199,20 @@ function drawBG(){
       bg.height * scale
     );
   } else {
-    // Si la imagen de fondo aún no carga, dibuja un fondo temporal
+    // Fondo oscuro temporal mientras carga
     ctx.fillStyle = "#1a1a1a";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 }
 
-/* 🐼 Personaje (Respetando Mayúsculas exactas como 'Quietodefrente.png') */
+/* 🐼 Personaje (Nombres exactos) */
 const sprites = {
-  run1: load("retos/corriendo1.png"),
-  run2: load("retos/corriendo2.png"),
-  midAir: load("retos/enmediodelsalto.png"),
-  fall: load("retos/cayendo.png"),
-  idle: load("retos/Quietodefrente.png"),
-  dead: load("retos/muerte1.png")
+  run1: load("/retos/corriendo1.png"),
+  run2: load("/retos/corriendo2.png"),
+  midAir: load("/retos/enmediodelsalto.png"),
+  fall: load("/retos/cayendo.png"),
+  idle: load("/retos/Quietodefrente.png"),
+  dead: load("/retos/muerte1.png")
 };
 
 let gameStarted=false, gameOver=false, gameWin=false, score=0;
@@ -245,10 +252,11 @@ function drawDino(){
     }
   }
 
-  if(img && img.complete && img.naturalWidth !== 0){
+  // Comprobación robusta de la imagen del sprite
+  if(img && img.complete && img.naturalWidth > 0){
     ctx.drawImage(img,dino.x,dino.y-(dino.h*scale-dino.h),dino.w*scale,dino.h*scale);
   } else {
-    // Cuadro de reemplazo visible si la imagen no ha cargado
+    // Si el sprite falla, mostramos el cuadro blanco de respaldo que viste en tu imagen
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(dino.x, dino.y, dino.w, dino.h);
   }
@@ -258,9 +266,11 @@ function drawObs(){
   if(gameWin) return;
   const sprite = bambooSprites[getBGIndex()];
   obstacles.forEach(o=>{
-    if(sprite && sprite.complete && sprite.naturalWidth !== 0){
+    // Comprobación robusta del obstáculo
+    if(sprite && sprite.complete && sprite.naturalWidth > 0){
       ctx.drawImage(sprite,o.x,o.y,o.w,o.h);
     } else {
+      // Si el obstáculo falla, mostramos el cuadro verde de respaldo que viste
       ctx.fillStyle = "#4CAF50";
       ctx.fillRect(o.x, o.y, o.w, o.h);
     }
@@ -282,7 +292,8 @@ function update(){
   }
 
   if(frame%120===0&&!gameWin){
-    obstacles.push({x:canvas.width,y:canvas.height-55,w:18,h:50});
+    // Ajuste de obstáculos para que no queden enterrados
+    obstacles.push({x:canvas.width,y:canvas.height-60,w:18,h:50});
   }
 
   dino.vy+=dino.g;
@@ -295,6 +306,7 @@ function update(){
   obstacles.forEach(o=>o.x-=speed);
 
   obstacles.forEach(o=>{
+    // Colisión mejorada
     if(dino.x<o.x+o.w&&dino.x+dino.w>o.x&&dino.y<o.y+o.h&&dino.y+dino.h>o.y){
       gameOver=true;
       music.pause();
@@ -322,7 +334,8 @@ function jump(){
 }
 
 function handleInput(e){
-  e.preventDefault();
+  // Solo prevenimos el comportamiento por defecto en eventos táctiles
+  if(e.type === 'touchstart') e.preventDefault();
   startMusic();
 
   if(!gameStarted){
@@ -335,6 +348,7 @@ function handleInput(e){
   }
 }
 
+// Escuchadores de eventos para móvil y PC
 canvas.addEventListener("touchstart", handleInput,{passive:false});
 canvas.addEventListener("click", handleInput);
 startBar.addEventListener("touchstart", handleInput,{passive:false});
