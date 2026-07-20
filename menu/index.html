@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú Hanari Coffee</title>
+    
+    <!-- PRECARGA DE IMÁGENES (Corregido para asegurar la carga inmediata de Liur) -->
+    <link rel="preload" href="Hanari Images/Liur.PNG" as="image">
+    <link rel="preload" href="Hanari Images/menu image.jpeg" as="image">
+
+    <!-- Librería PinchZoom para gestionar los gestos táctiles y el ratón de forma fluida -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pinch-zoom-js/2.3.4/pinch-zoom.min.js"></script>
+
+    <style>
+        /* Estilos generales */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1a1512;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden; 
+        }
+
+        body.menu-abierto {
+            overflow: auto;
+        }
+
+        /* CONTENEDOR PRINCIPAL DEL PERGAMINO */
+        .pergamino-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: transform 0.5s ease;
+        }
+
+        /* El cuerpo del pergamino (la imagen del menú) */
+        .pergamino-cuerpo {
+            max-width: 85vw;
+            max-height: 80vh;
+            width: 0px; /* Inicia cerrado */
+            overflow: hidden;
+            transition: width 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-top: 4px solid #8B4513;
+            border-bottom: 4px solid #8B4513;
+        }
+
+        /* Contenedor específico para el área de zoom */
+        .zoom-wrapper {
+            width: 100%;
+            height: 80vh;
+            display: flex;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* La imagen dentro del pergamino */
+        .pergamino-cuerpo img {
+            height: 80vh;
+            width: auto;
+            display: block;
+            pointer-events: none; 
+            max-width: none;
+        }
+
+        .pergamino-container.abierto .pergamino-cuerpo img {
+            pointer-events: auto;
+        }
+
+        /* Los rodillos de madera laterales */
+        .rodillo {
+            width: 25px;
+            height: calc(80vh + 20px);
+            background: linear-gradient(to right, #5c2c16, #8B4513, #5c2c16);
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            z-index: 10;
+            cursor: pointer;
+        }
+
+        .rodillo::before, .rodillo::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 31px;
+            height: 15px;
+            background: linear-gradient(to right, #b8860b, #ffd700, #b8860b);
+            border-radius: 3px;
+        }
+        .rodillo::before { top: -15px; }
+        .rodillo::after { bottom: -15px; }
+
+        /* Cuando el pergamino está ABIERTO */
+        .pergamino-container.abierto .pergamino-cuerpo {
+            width: 100%; 
+        }
+
+        /* Indicador o botón flotante inferior */
+        .instruccion {
+            position: absolute;
+            bottom: -40px;
+            color: #f5f5dc;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 1px 1px 2px black;
+            transition: opacity 0.5s;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .pergamino-container.abierto .instruccion {
+            opacity: 0.5;
+        }
+
+        /* ========================================================
+           PERSONAJE: LIUR (PANDA ROJO) Y GLOBO DE TEXTO (VISTA PC)
+           ======================================================== */
+        .liur-asistente {
+            position: absolute;
+            left: -320px; 
+            display: flex;
+            flex-direction: row; 
+            align-items: center;
+            z-index: 20;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            pointer-events: none; 
+        }
+
+        /* Imagen de Liur */
+        .liur-img {
+            width: 100px;
+            height: auto;
+            filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.5));
+        }
+
+        /* Globo de diálogo estilo cómic/bocadillo */
+        .liur-globo {
+            background-color: #f5f5dc;
+            color: #2b1d16;
+            padding: 12px 16px;
+            border-radius: 15px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border: 2px solid #8B4513;
+            max-width: 180px;
+            position: relative;
+            margin-right: 15px; 
+        }
+
+        /* Flecha del globo apuntando a la derecha */
+        .liur-globo::after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 10px 0 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent transparent #f5f5dc;
+            display: block;
+            width: 0;
+        }
+        
+        .liur-globo::before {
+            content: '';
+            position: absolute;
+            right: -13px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 11px 0 11px 11px;
+            border-style: solid;
+            border-color: transparent transparent transparent #8B4513;
+            display: block;
+            width: 0;
+            z-index: -1;
+        }
+
+        /* Ocultar a Liur cuando el pergamino esté abierto */
+        .pergamino-container.abierto .liur-asistente {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+
+        /* ========================================================
+           VISTA DISPOSITIVOS MÓVILES
+           ======================================================== */
+        @media (max-width: 768px) and (orientation: portrait) {
+            .pergamino-container {
+                transform: rotate(90deg);
+                transform-origin: center center;
+            }
+
+            .pergamino-cuerpo {
+                max-width: 80vh;  
+                max-height: 85vw; 
+            }
+
+            .zoom-wrapper {
+                height: 85vw;
+            }
+
+            .pergamino-cuerpo img {
+                height: 85vw; 
+                width: auto;
+            }
+
+            .rodillo {
+                height: calc(85vw + 20px);
+            }
+
+            .liur-asistente {
+                transform: rotate(-90deg);
+                top: auto;
+                left: -190px; 
+                flex-direction: row; 
+            }
+
+            .liur-globo {
+                margin-bottom: 0;
+                margin-right: 15px;
+                max-width: 160px;
+                font-size: 0.85rem;
+            }
+
+            .liur-globo::after {
+                bottom: auto;
+                left: auto;
+                right: -10px;
+                top: 50%;
+                transform: translateY(-50%);
+                border-width: 10px 0 10px 10px;
+                border-color: transparent transparent transparent #f5f5dc;
+            }
+            .liur-globo::before {
+                bottom: auto;
+                left: auto;
+                right: -13px;
+                top: 50%;
+                transform: translateY(-50%);
+                border-width: 11px 0 11px 11px;
+                border-color: transparent transparent transparent #8B4513;
+            }
+
+            .pergamino-container.abierto .liur-asistente {
+                opacity: 0;
+                transform: rotate(-90deg) translateX(-20px);
+            }
+
+            .instruccion::after {
+                content: " 🔄 (Usa 2 dedos para hacer zoom)";
+                display: block;
+                font-size: 0.8rem;
+                color: #ffb74d;
+                text-align: center;
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="pergamino-container">
+        
+        <!-- PERSONAJE LIUR CON SU TEXTO EXPLICATIVO -->
+        <div class="liur-asistente">
+            <div class="liur-globo">¡Hola! Presiona los rodillos de madera para abrir el menú 📜</div>
+            <!-- Cambiado %20 por espacio estándar para evitar retrasos de interpretación en el navegador -->
+            <img src="Hanari Images/Liur.PNG" alt="Liur el Panda Rojo" class="liur-img">
+        </div>
+
+        <!-- Rodillo Izquierdo -->
+        <div class="rodillo" onclick="togglePergamino()"></div>
+
+        <!-- Cuerpo del pergamino -->
+        <div class="pergamino-cuerpo">
+            <div class="zoom-wrapper" id="zoom-area">
+                <img src="Hanari Images/menu image.jpeg" alt="Menú Hanari Coffee" id="menu-img">
+            </div>
+        </div>
+
+        <!-- Rodillo Derecho -->
+        <div class="rodillo" onclick="togglePergamino()"></div>
+
+        <!-- Texto de guía inferior -->
+        <div class="instruccion" id="texto-guia">Click para Abrir / Cerrar</div>
+    </div>
+
+    <script>
+        let pzInstance = null;
+
+        function inicializarZoom() {
+            const el = document.getElementById('zoom-area');
+            if (el && !pzInstance) {
+                pzInstance = new PinchZoom(el, {
+                    tapZoomFactor: 2,
+                    maxZoom: 4,
+                    minZoom: 1,
+                    draggableUnzoomed: false 
+                });
+            }
+        }
+
+        function togglePergamino() {
+            const container = document.querySelector('.pergamino-container');
+            const instruccion = document.getElementById('texto-guia');
+            const estaAbierto = container.classList.toggle('abierto');
+            
+            if (estaAbierto) {
+                document.body.classList.add('menu-abierto');
+                instruccion.textContent = "Usa tus dedos o ratón para hacer Zoom";
+                
+                setTimeout(() => {
+                    inicializarZoom();
+                }, 1500);
+            } else {
+                document.body.classList.remove('menu-abierto');
+                instruccion.textContent = "Click para Abrir / Cerrar";
+                
+                if (pzInstance) {
+                    pzInstance.setTransform({
+                        x: 0,
+                        y: 0,
+                        scale: 1,
+                        animate: true
+                    });
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>
