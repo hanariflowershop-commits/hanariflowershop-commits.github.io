@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menú Hanari Coffee</title>
     
-    <!-- PRECARGA DE IMÁGENES (Corregido para asegurar la carga inmediata de Liur) -->
-    <link rel="preload" href="Hanari Images/Liur.PNG" as="image">
-    <link rel="preload" href="Hanari Images/menu image.jpeg" as="image">
+    <!-- PRECARGA DE IMÁGENES -->
+    <link rel="preload" href="Liur.PNG" as="image">
+    <link rel="preload" href="menu image.jpeg" as="image">
 
     <!-- Librería PinchZoom para gestionar los gestos táctiles y el ratón de forma fluida -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pinch-zoom-js/2.3.4/pinch-zoom.min.js"></script>
@@ -275,8 +275,7 @@
         <!-- PERSONAJE LIUR CON SU TEXTO EXPLICATIVO -->
         <div class="liur-asistente">
             <div class="liur-globo">¡Hola! Presiona los rodillos de madera para abrir el menú 📜</div>
-            <!-- Cambiado %20 por espacio estándar para evitar retrasos de interpretación en el navegador -->
-            <img src="Hanari Images/Liur.PNG" alt="Liur el Panda Rojo" class="liur-img">
+            <img src="Liur.PNG" alt="Liur el Panda Rojo" class="liur-img">
         </div>
 
         <!-- Rodillo Izquierdo -->
@@ -285,7 +284,7 @@
         <!-- Cuerpo del pergamino -->
         <div class="pergamino-cuerpo">
             <div class="zoom-wrapper" id="zoom-area">
-                <img src="Hanari Images/menu image.jpeg" alt="Menú Hanari Coffee" id="menu-img">
+                <img src="menu image.jpeg" alt="Menú Hanari Coffee" id="menu-img">
             </div>
         </div>
 
