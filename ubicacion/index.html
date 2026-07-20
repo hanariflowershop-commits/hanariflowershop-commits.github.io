@@ -1,0 +1,246 @@
+<div style="position:relative; width:100%; height:500px;">
+
+<div id="map" style="width:100%; height:100%; border-radius:16px;"></div>
+
+<!-- BOTÓN GOOGLE MAPS -->
+<a href="https://www.google.com/maps/search/?api=1&query=Hanari+Coffee" target="_blank" class="maps-float" id="mapsBtn">
+  <!-- Icono público y confiable de Google Maps via Wikimedia CDN -->
+  <img src="https://upload.wikimedia.org/wikipedia/commons/3/39/Google_Maps_icon_%282015-2020%29.svg" alt="Google Maps Icon">
+  <span>Ver en Google Maps</span>
+</a>
+
+<!-- PANEL -->
+<div id="panel" class="panel">
+
+  <div class="panel-toggle top">Presione para explorar información</div>
+
+  <h3>Hanari Coffee ☕</h3>
+
+  <b>Ubicación</b>
+  <!-- Reemplaza las imágenes en la carpeta 'images/ubicacion/' de tu repositorio -->
+  <img src="./images/ubicacion/foto1.jpg" alt="Ubicación 1">
+  <img src="./images/ubicacion/foto2.jpg" alt="Ubicación 2">
+  <img src="./images/ubicacion/foto3.jpg" alt="Ubicación 3">
+  <img src="./images/ubicacion/foto4.jpg" alt="Ubicación 4">
+
+  <b>Local</b>
+  <!-- Reemplaza las imágenes en la carpeta 'images/local/' de tu repositorio -->
+  <img src="./images/local/foto1.jpg" alt="Local 1">
+  <img src="./images/local/foto2.jpg" alt="Local 2">
+  <img src="./images/local/foto3.jpg" alt="Local 3">
+
+  <b>Productos</b>
+  <!-- Reemplaza las imágenes en la carpeta 'images/productos/' de tu repositorio -->
+  <div class="carousel">
+    <img src="./images/productos/prod1.jpg" alt="Producto 1">
+    <img src="./images/productos/prod2.jpg" alt="Producto 2">
+    <img src="./images/productos/prod3.jpg" alt="Producto 3">
+    <img src="./images/productos/prod4.jpg" alt="Producto 4">
+    <img src="./images/productos/prod5.jpg" alt="Producto 5">
+  </div>
+
+  <div class="panel-toggle bottom">Toque para cerrar</div>
+
+</div>
+
+</div>
+
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+
+<style>
+.panel {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  padding: 12px;
+  z-index: 10;
+  scroll-behavior: smooth;
+}
+
+.panel img {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.carousel {
+  display: flex;
+  overflow-x: auto;
+  gap: 8px;
+}
+
+.carousel img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+}
+
+.maps-float {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+  z-index: 20;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  transition: 0.3s;
+}
+
+.maps-float img {
+  width: 24px;
+}
+
+.maps-float.fade {
+  opacity: 0.4;
+}
+
+@keyframes ripple {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+.panel-toggle {
+  display: none;
+}
+
+@media (max-width: 768px) {
+
+  .maps-float {
+    left: 20px;
+    right: auto;
+  }
+
+  .panel-toggle {
+    display: block;
+    text-align: center;
+    font-size: 12px;
+    padding: 6px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    background: #f5f5f5;
+    color: #555;
+  }
+
+  .panel-toggle.bottom {
+    margin-top: 10px;
+  }
+
+  .panel {
+    width: 85%;
+    max-height: 120px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .panel.active {
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+}
+</style>
+
+<script>
+setTimeout(() => {
+
+mapboxgl.accessToken = 'pk.eyJ1IjoiaGFuYXJpLWNvZmZlZSIsImEiOiJjbW56M2oxc3UwN3Z0MnFwdnRvMDcyNnRuIn0.DKGU9hozhxBAg31hAcm5MA';
+
+const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v12',
+    center: [-78.614622, -0.934952],
+    zoom: 17,
+    pitch: 65,
+    bearing: -20,
+    antialias: true
+});
+
+map.on('load', () => {
+
+  map.addLayer({
+    id: '3d-buildings',
+    source: 'composite',
+    'source-layer': 'building',
+    filter: ['==', 'extrude', 'true'],
+    type: 'fill-extrusion',
+    minzoom: 15,
+    paint: {
+      'fill-extrusion-color': '#c7b299',
+      'fill-extrusion-height': ['get', 'height'],
+      'fill-extrusion-base': ['get', 'min_height'],
+      'fill-extrusion-opacity': 0.4
+    }
+  });
+
+  const el = document.createElement('div');
+  el.style.display = 'flex';
+  el.style.flexDirection = 'column';
+  el.style.alignItems = 'center';
+  el.style.position = 'relative';
+
+  const ripple = document.createElement('div');
+  ripple.style.position = 'absolute';
+  ripple.style.width = '70px';
+  ripple.style.height = '70px';
+  ripple.style.borderRadius = '50%';
+  ripple.style.background = 'rgba(107,79,59,0.4)';
+  ripple.style.animation = 'ripple 2s infinite';
+
+  const img = document.createElement('img');
+  // Reemplaza esta ruta con tu logo/mariposa personalizado alojado en tu repo de GH
+  img.src = './images/mariposa.png'; 
+  img.style.width = '40px';
+  img.style.zIndex = '2';
+
+  const label = document.createElement('div');
+  label.innerText = 'Hanari Coffee';
+
+  el.appendChild(ripple);
+  el.appendChild(img);
+  el.appendChild(label);
+
+  new mapboxgl.Marker(el)
+    .setLngLat([-78.614622, -0.934952])
+    .addTo(map);
+
+});
+
+}, 300);
+
+const panel = document.getElementById('panel');
+const mapsBtn = document.getElementById('mapsBtn');
+
+panel.addEventListener('click', () => {
+  if (window.innerWidth <= 768) {
+
+    if (panel.classList.contains('active')) {
+      panel.classList.remove('active');
+      mapsBtn.classList.remove('fade');
+
+      setTimeout(() => {
+        panel.scrollTop = 0;
+      }, 200);
+
+    } else {
+      panel.classList.add('active');
+      mapsBtn.classList.add('fade');
+    }
+
+  }
+});
+</script>
