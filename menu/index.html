@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menú Hanari Coffee</title>
     
-    <!-- PRECARGA DE IMÁGENES -->
+    <!-- PRECARGA DE ARCHIVOS -->
     <link rel="preload" href="Liur.PNG" as="image">
     <link rel="preload" href="menu image.jpeg" as="image">
 
@@ -193,6 +193,38 @@
         }
 
         /* ========================================================
+           BOTÓN DISCRETO DE CONTROL DE MÚSICA
+           ======================================================== */
+        #btnMusica {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: #8B4513;
+            color: #f5f5dc;
+            border: 2px solid #b8860b;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            transition: transform 0.2s, opacity 0.5s;
+            opacity: 0; /* Aparece solo cuando empiece la música */
+            pointer-events: none;
+        }
+
+        #btnMusica.visible {
+            opacity: 0.8;
+            pointer-events: auto;
+        }
+
+        #btnMusica.visible:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* ========================================================
            VISTA DISPOSITIVOS MÓVILES
            ======================================================== */
         @media (max-width: 768px) and (orientation: portrait) {
@@ -270,6 +302,14 @@
 </head>
 <body>
 
+    <!-- ELEMENTO DE AUDIO EN SEGUNDO PLANO -->
+    <audio id="musicaFondo" loop preload="auto">
+        <source src="musica-fondo.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Botón discreto para pausar o volver a activar el sonido -->
+    <button id="btnMusica" onclick="toggleControlMusica()" title="Música de fondo">🔊</button>
+
     <div class="pergamino-container">
         
         <!-- PERSONAJE LIUR CON SU TEXTO EXPLICATIVO -->
@@ -297,6 +337,7 @@
 
     <script>
         let pzInstance = null;
+        let primeraVezMusica = true;
 
         function inicializarZoom() {
             const el = document.getElementById('zoom-area');
@@ -310,7 +351,39 @@
             }
         }
 
+        // Se ejecuta al tocar los rodillos por primera vez
+        function activarMusicaAutomatica() {
+            const audio = document.getElementById('musicaFondo');
+            const btn = document.getElementById('btnMusica');
+
+            if (primeraVezMusica) {
+                audio.play().then(() => {
+                    btn.classList.add('visible'); // Aparece el botón de silencio en la esquina
+                    primeraVezMusica = false;
+                }).catch(err => {
+                    console.log("Audio bloqueado por el navegador hasta interactuar:", err);
+                });
+            }
+        }
+
+        // Permite al usuario mutear/desmutear libremente
+        function toggleControlMusica() {
+            const audio = document.getElementById('musicaFondo');
+            const btn = document.getElementById('btnMusica');
+
+            if (audio.paused) {
+                audio.play();
+                btn.textContent = '🔊';
+            } else {
+                audio.pause();
+                btn.textContent = '🔇';
+            }
+        }
+
         function togglePergamino() {
+            // Reproduce la música al presionar para abrir el pergamino
+            activarMusicaAutomatica();
+
             const container = document.querySelector('.pergamino-container');
             const instruccion = document.getElementById('texto-guia');
             const estaAbierto = container.classList.toggle('abierto');
