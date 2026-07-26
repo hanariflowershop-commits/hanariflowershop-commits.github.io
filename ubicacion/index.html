@@ -1,41 +1,44 @@
-<div style="position:relative; width:100%; height:500px;">
+<!-- ESTA LÍNEA ES CLAVE: Fuerza al teléfono a rendersarse a tamaño real -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<div id="map" style="width:100%; height:100%; border-radius:16px;"></div>
+<div class="map-container">
 
-<!-- BOTÓN GOOGLE MAPS -->
-<a href="https://www.google.com/maps/search/?api=1&query=Hanari+Coffee" target="_blank" class="maps-float" id="mapsBtn">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/3/39/Google_Maps_icon_%282015-2020%29.svg" alt="Google Maps Icon">
-  <span>Ver en Google Maps</span>
-</a>
+  <div id="map"></div>
 
-<!-- PANEL -->
-<div id="panel" class="panel">
+  <!-- BOTÓN GOOGLE MAPS -->
+  <a href="https://www.google.com/maps/search/?api=1&query=Hanari+Coffee" target="_blank" class="maps-float" id="mapsBtn">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/3/39/Google_Maps_icon_%282015-2020%29.svg" alt="Google Maps Icon">
+    <span>Ver en Google Maps</span>
+  </a>
 
-  <div class="panel-toggle top">Presione para explorar información</div>
+  <!-- PANEL -->
+  <div id="panel" class="panel">
 
-  <h3>Hanari Coffee ☕</h3>
+    <div class="panel-toggle top">Presione para explorar información</div>
 
-  <b>Ubicación</b>
-  <img src="./Ubicacion 1.jpeg" alt="Ubicación 1">
-  <img src="./Ubicacion 3.jpeg" alt="Ubicación 3">
+    <h3>Hanari Coffee ☕</h3>
 
-  <b>Local</b>
-  <img src="./Local 1.jpeg" alt="Local 1">
-  <img src="./Local 2.jpeg" alt="Local 2">
-  <img src="./Local 3.jpeg" alt="Local 3">
+    <b>Ubicación</b>
+    <img src="./Ubicacion 1.jpeg" alt="Ubicación 1">
+    <img src="./Ubicacion 3.jpeg" alt="Ubicación 3">
 
-  <b>Productos</b>
-  <div class="carousel">
-    <img src="./Producto 1.jpeg" alt="Producto 1">
-    <img src="./Producto 2.jpeg" alt="Producto 2">
-    <img src="./Producto 3.jpeg" alt="Producto 3">
-    <img src="./Producto 4.jpeg" alt="Producto 4">
-    <img src="./Producto 5.jpeg" alt="Producto 5">
+    <b>Local</b>
+    <img src="./Local 1.jpeg" alt="Local 1">
+    <img src="./Local 2.jpeg" alt="Local 2">
+    <img src="./Local 3.jpeg" alt="Local 3">
+
+    <b>Productos</b>
+    <div class="carousel">
+      <img src="./Producto 1.jpeg" alt="Producto 1">
+      <img src="./Producto 2.jpeg" alt="Producto 2">
+      <img src="./Producto 3.jpeg" alt="Producto 3">
+      <img src="./Producto 4.jpeg" alt="Producto 4">
+      <img src="./Producto 5.jpeg" alt="Producto 5">
+    </div>
+
+    <div class="panel-toggle bottom">Toque para cerrar</div>
+
   </div>
-
-  <div class="panel-toggle bottom">Toque para cerrar</div>
-
-</div>
 
 </div>
 
@@ -43,6 +46,19 @@
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 
 <style>
+/* Contenedor adaptativo */
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 500px;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+}
+
 .panel {
   position: absolute;
   bottom: 20px;
@@ -53,27 +69,42 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-  padding: 12px;
+  padding: 14px;
   z-index: 10;
   scroll-behavior: smooth;
+  box-sizing: border-box;
+}
+
+.panel h3 {
+  margin-top: 0;
+  font-size: 18px;
+}
+
+.panel b {
+  display: block;
+  margin: 10px 0 6px 0;
+  font-size: 14px;
 }
 
 .panel img {
   width: 100%;
   border-radius: 8px;
   margin-bottom: 8px;
+  display: block;
 }
 
 .carousel {
   display: flex;
   overflow-x: auto;
   gap: 8px;
+  padding-bottom: 4px;
 }
 
 .carousel img {
   width: 100px;
   height: 100px;
   object-fit: cover;
+  flex-shrink: 0;
 }
 
 .maps-float {
@@ -92,15 +123,17 @@
   font-size: 13px;
   font-weight: 600;
   color: #444;
-  transition: 0.3s;
+  transition: opacity 0.3s ease;
 }
 
 .maps-float img {
   width: 24px;
+  height: 24px;
 }
 
 .maps-float.fade {
-  opacity: 0.4;
+  opacity: 0;
+  pointer-events: none;
 }
 
 @keyframes ripple {
@@ -112,37 +145,54 @@
   display: none;
 }
 
+/* --- AJUSTES ESTÉTICOS PARA TELÉFONO --- */
 @media (max-width: 768px) {
+  .map-container {
+    height: 85vh; /* En celular ocupa casi toda la pantalla */
+  }
+
+  #map {
+    border-radius: 0px; /* Sin bordes redondeados para aprovechar pantalla completa */
+  }
+
   .maps-float {
-    left: 20px;
-    right: auto;
+    top: 12px;
+    right: 12px;
+    padding: 8px 12px;
+    font-size: 12px;
   }
 
   .panel-toggle {
     display: block;
     text-align: center;
-    font-size: 12px;
-    padding: 6px;
-    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px;
     border-radius: 8px;
-    background: #f5f5f5;
-    color: #555;
+    background: #f0f0f0;
+    color: #444;
   }
 
   .panel-toggle.bottom {
     margin-top: 10px;
   }
 
+  /* El panel en teléfono se fija abajo en la pantalla */
   .panel {
-    width: 85%;
-    max-height: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 12px;
+    width: 92%;
+    max-width: 400px;
+    max-height: 48px; /* Cerrado: solo muestra el aviso */
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
   }
 
+  /* Al presionar, se desliza hacia arriba ocupando gran parte de la pantalla */
   .panel.active {
-    max-height: 80vh;
+    max-height: 70vh;
     overflow-y: auto;
   }
 }
@@ -150,10 +200,9 @@
 
 <script>
 setTimeout(() => {
+  mapboxgl.accessToken = 'pk.eyJ1IjoiaGFuYXJpLWNvZmZlZSIsImEiOiJjbW56M2oxc3UwN3Z0MnFwdnRvMDcyNnRuIn0.DKGU9hozhxBAg31hAcm5MA';
 
-mapboxgl.accessToken = 'pk.eyJ1IjoiaGFuYXJpLWNvZmZlZSIsImEiOiJjbW56M2oxc3UwN3Z0MnFwdnRvMDcyNnRuIn0.DKGU9hozhxBAg31hAcm5MA';
-
-const map = new mapboxgl.Map({
+  const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/streets-v12',
     center: [-78.614622, -0.934952],
@@ -161,67 +210,64 @@ const map = new mapboxgl.Map({
     pitch: 65,
     bearing: -20,
     antialias: true
-});
-
-map.on('load', () => {
-
-  map.addLayer({
-    id: '3d-buildings',
-    source: 'composite',
-    'source-layer': 'building',
-    filter: ['==', 'extrude', 'true'],
-    type: 'fill-extrusion',
-    minzoom: 15,
-    paint: {
-      'fill-extrusion-color': '#c7b299',
-      'fill-extrusion-height': ['get', 'height'],
-      'fill-extrusion-base': ['get', 'min_height'],
-      'fill-extrusion-opacity': 0.4
-    }
   });
 
-  const el = document.createElement('div');
-  el.style.display = 'flex';
-  el.style.flexDirection = 'column';
-  el.style.alignItems = 'center';
-  el.style.position = 'relative';
+  map.on('load', () => {
+    map.addLayer({
+      id: '3d-buildings',
+      source: 'composite',
+      'source-layer': 'building',
+      filter: ['==', 'extrude', 'true'],
+      type: 'fill-extrusion',
+      minzoom: 15,
+      paint: {
+        'fill-extrusion-color': '#c7b299',
+        'fill-extrusion-height': ['get', 'height'],
+        'fill-extrusion-base': ['get', 'min_height'],
+        'fill-extrusion-opacity': 0.4
+      }
+    });
 
-  const ripple = document.createElement('div');
-  ripple.style.position = 'absolute';
-  ripple.style.width = '70px';
-  ripple.style.height = '70px';
-  ripple.style.borderRadius = '50%';
-  ripple.style.background = 'rgba(107,79,59,0.4)';
-  ripple.style.animation = 'ripple 2s infinite';
+    const el = document.createElement('div');
+    el.style.display = 'flex';
+    el.style.flexDirection = 'column';
+    el.style.alignItems = 'center';
+    el.style.position = 'relative';
 
-  const img = document.createElement('div');
-  img.style.backgroundImage = "url('./Mariposa.PNG')";
-  img.style.width = '52px';
-  img.style.height = '52px';
-  img.style.backgroundSize = 'contain';
-  img.style.backgroundRepeat = 'no-repeat';
-  img.style.zIndex = '2';
+    const ripple = document.createElement('div');
+    ripple.style.position = 'absolute';
+    ripple.style.width = '70px';
+    ripple.style.height = '70px';
+    ripple.style.borderRadius = '50%';
+    ripple.style.background = 'rgba(107,79,59,0.4)';
+    ripple.style.animation = 'ripple 2s infinite';
 
-  const label = document.createElement('div');
-  label.innerText = 'Hanari Coffee';
-  label.style.background = 'white';
-  label.style.padding = '2px 6px';
-  label.style.borderRadius = '4px';
-  label.style.fontSize = '12px';
-  label.style.fontWeight = 'bold';
-  label.style.marginTop = '4px';
-  label.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+    const img = document.createElement('div');
+    img.style.backgroundImage = "url('./Mariposa.PNG')";
+    img.style.width = '72px';
+    img.style.height = '72px';
+    img.style.backgroundSize = 'contain';
+    img.style.backgroundRepeat = 'no-repeat';
+    img.style.zIndex = '2';
 
-  el.appendChild(ripple);
-  el.appendChild(img);
-  el.appendChild(label);
+    const label = document.createElement('div');
+    label.innerText = 'Hanari Coffee';
+    label.style.background = 'white';
+    label.style.padding = '2px 6px';
+    label.style.borderRadius = '4px';
+    label.style.fontSize = '12px';
+    label.style.fontWeight = 'bold';
+    label.style.marginTop = '4px';
+    label.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
 
-  new mapboxgl.Marker(el)
-    .setLngLat([-78.614622, -0.934952])
-    .addTo(map);
+    el.appendChild(ripple);
+    el.appendChild(img);
+    el.appendChild(label);
 
-});
-
+    new mapboxgl.Marker(el)
+      .setLngLat([-78.614622, -0.934952])
+      .addTo(map);
+  });
 }, 300);
 
 const panel = document.getElementById('panel');
@@ -232,11 +278,7 @@ panel.addEventListener('click', () => {
     if (panel.classList.contains('active')) {
       panel.classList.remove('active');
       mapsBtn.classList.remove('fade');
-
-      setTimeout(() => {
-        panel.scrollTop = 0;
-      }, 200);
-
+      setTimeout(() => { panel.scrollTop = 0; }, 200);
     } else {
       panel.classList.add('active');
       mapsBtn.classList.add('fade');
