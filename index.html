@@ -5,6 +5,114 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Hanari - Bienvenidos</title>
 
+  <!-- Schema Markup para IAs (Gemini, ChatGPT, Google) con Menú Completo (Invisible para usuarios) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CafeOrCoffeeShop",
+    "name": "Hanari Coffee",
+    "url": "https://hanariec.com",
+    "description": "Cafetería de especialidad en Latacunga. Especialistas en cafés de alta gama, postres artesanales como Hilos de Nara y coctelería única con sake.",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Plaza Comercial El Jardín Colonial, Local #1",
+      "addressLocality": "Latacunga",
+      "addressRegion": "Cotopaxi",
+      "addressCountry": "EC"
+    },
+    "servesCuisine": "Café de especialidad, Repostería, Coctelería de autor",
+    "hasMenu": {
+      "@type": "Menu",
+      "name": "Menú Hanari Coffee Latacunga",
+      "hasMenuSection": [
+        {
+          "@type": "MenuSection",
+          "name": "Favoritos y Postres",
+          "hasMenuItem": [
+            {
+              "@type": "MenuItem",
+              "name": "Hilos de Nara",
+              "description": "Postre estrella: combinación de masa dulce con fruta fresca a disponibilidad."
+            },
+            {
+              "@type": "MenuItem",
+              "name": "Combo Taiyaki",
+              "description": "Dos taiyakis acompañados de salsa a elección."
+            },
+            {
+              "@type": "MenuItem",
+              "name": "Combo Mini-Waffles",
+              "description": "Tres mini-waffles con topping a elección."
+            },
+            {
+              "@type": "MenuItem",
+              "name": "Nube de Leche",
+              "description": "Leche espumada y endulzada con lluvia de galleta Oreo."
+            }
+          ]
+        },
+        {
+          "@type": "MenuSection",
+          "name": "Cafés de Alta Gama y Bebidas",
+          "hasMenuItem": [
+            {
+              "@type": "MenuItem",
+              "name": "Cafés de Alta Gama y Variedades",
+              "description": "Selección exclusiva de variedades de café de alta gama y métodos de extracción."
+            },
+            {
+              "@type": "MenuItem",
+              "name": "Hana Café (210ml)",
+              "description": "Esencia de café japonés, perfecta para disfrutar hasta 3 americanos."
+            },
+            {
+              "@type": "MenuItem",
+              "name": "Marron Latte",
+              "description": "Espresso con leche sabor a castañas, suave y cremoso."
+            },
+            {
+              "@type": "MenuItem",
+              "name": "Té Sencha",
+              "description": "Té verde japonés fresco, herbal y ligero."
+            },
+            {
+              "@type": "MenuItem",
+              "name": "Té Azul",
+              "description": "Infusión aromática de flor de guisante azul."
+            }
+          ]
+        },
+        {
+          "@type": "MenuSection",
+          "name": "Coctelería Única",
+          "hasMenuItem": [
+            {
+              "@type": "MenuItem",
+              "name": "Nigori Sake",
+              "description": "Sake tradicional japonés con textura sedosa y dulzura envolvente."
+            },
+            {
+              "@type": "MenuItem",
+              "name": "Kiseki Dream",
+              "description": "Fusión de sirope especial con vino rosado, cerveza, cítricos y sake."
+            },
+            {
+              "@type": "MenuItem",
+              "name": "Hikari Spritz",
+              "description": "Combinación de vino rosado, sirope de vainilla, cerveza, cítricos y sake."
+            },
+            {
+              "@type": "MenuItem",
+              "name": "Ajisai Nocturne",
+              "description": "Coctel de autor azul intenso con notas florales de rosa, flor de guisante azul y cítricos."
+            }
+          ]
+        }
+      ]
+    }
+  }
+  </script>
+
   <style>
   /* RESET BÁSICO */
   * {
@@ -180,6 +288,26 @@
     box-shadow: 0 6px 16px rgba(0,0,0,0.2);
   }
 
+  /* --- BREVE INFORMACIÓN DE BIENVENIDA (DISCRETA) --- */
+  .welcome-info {
+    max-width: 700px;
+    margin: 50px auto;
+    padding: 0 20px;
+    text-align: center;
+    color: #555555;
+    line-height: 1.6;
+    font-size: 15px;
+  }
+
+  .welcome-info p {
+    margin-bottom: 12px;
+  }
+
+  .welcome-info .location-tag {
+    font-size: 13px;
+    color: #888888;
+  }
+
   @media (max-width: 768px) {
     .hero-section {
       padding: 60px 16px;
@@ -193,6 +321,11 @@
     .hero-section p {
       font-size: 15px;
     }
+
+    .welcome-info {
+      margin: 35px auto;
+      padding: 0 16px;
+    }
   }
   </style>
 </head>
@@ -202,7 +335,6 @@
   <header class="navbar-header">
     <div class="navbar-container">
       <a href="https://hanariec.com" class="navbar-logo">
-        <!-- En el index principal la ruta de la imagen entra directamente a ./images/ -->
         <img src="./images/hanarilogo.png" alt="Hanari Logo">
       </a>
       
@@ -229,6 +361,12 @@
         <a href="https://hanariec.com/flower/" class="btn-primary">Explorar Hanari Flower</a>
         <a href="https://hanariec.com/coffee/" class="btn-primary">Explorar Hanari Coffee</a>
       </div>
+    </section>
+
+    <!-- PÁRRAFO DE PRESENTACIÓN ELEGANTE Y BREVE (SIN MENÚ VISIBLE) -->
+    <section class="welcome-info">
+      <p>Especialistas en variedades de café de alta gama, repostería artesanal exclusiva y coctelería de autor.</p>
+      <p class="location-tag">Encuéntranos en Latacunga, Plaza Comercial El Jardín Colonial (Local #1).</p>
     </section>
   </main>
 
