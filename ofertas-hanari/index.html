@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vaso Místico - Hanari</title>
+  <title>Vaso Místico - Hanari Ofertas</title>
   <style>
     * {
       box-sizing: border-box;
@@ -22,7 +22,6 @@
       overflow: hidden;
     }
 
-    /* Contenedor Principal Adaptable */
     .mystic-container {
       position: relative;
       display: flex;
@@ -35,27 +34,27 @@
       text-align: center;
     }
 
-    /* Aura luminosa detrás del vaso */
+    /* Aura luminosa detrás */
     .glow-aura {
       position: absolute;
-      width: 250px;
-      height: 250px;
-      background: radial-gradient(circle, rgba(255, 215, 0, 0.35) 0%, rgba(138, 43, 226, 0.2) 50%, rgba(0, 0, 0, 0) 70%);
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, rgba(138, 43, 226, 0.25) 50%, rgba(0, 0, 0, 0) 70%);
       border-radius: 50%;
       z-index: 1;
       animation: pulseAura 3s infinite alternate ease-in-out;
     }
 
-    /* Estilos de la imagen del Vaso */
+    /* Contenedor del Vaso */
     .glass-wrapper {
       position: relative;
       z-index: 2;
       width: 100%;
-      max-width: 280px;
-      margin-bottom: 25px;
+      max-width: 260px;
+      margin-bottom: 20px;
       cursor: pointer;
       user-select: none;
-      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.5s ease, transform 0.5s ease;
     }
 
     .glass-img {
@@ -63,20 +62,54 @@
       height: auto;
       display: block;
       filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6));
-      transition: transform 0.2s ease, filter 0.2s ease;
+      transition: filter 0.3s ease;
     }
 
-    .glass-wrapper:hover .glass-img {
-      transform: scale(1.03);
-      filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.5));
-    }
-
-    /* Animación de vibración tipo cofre al hacer click */
+    /* Animación de sacudida */
     .vibrate {
       animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
     }
 
-    /* Botón de Interacción */
+    /* Tarjeta de Premio Oculta */
+    .reward-card {
+      display: none;
+      position: relative;
+      z-index: 3;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      border: 2px solid #ffd700;
+      border-radius: 16px;
+      padding: 25px 20px;
+      width: 100%;
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .reward-card h2 {
+      color: #ffd700;
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+
+    .reward-card p {
+      font-size: 0.95rem;
+      color: #ddd;
+      margin-bottom: 15px;
+    }
+
+    .coupon-code {
+      background: #ffd700;
+      color: #111;
+      font-weight: bold;
+      font-size: 1.3rem;
+      padding: 10px 15px;
+      border-radius: 8px;
+      letter-spacing: 2px;
+      display: inline-block;
+      user-select: all;
+    }
+
+    /* Botón */
     .btn-reveal {
       position: relative;
       z-index: 2;
@@ -91,14 +124,14 @@
       box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
       transition: all 0.3s ease;
       text-transform: uppercase;
-      letter-spacing: 1px;
     }
 
-    .btn-reveal:active {
-      transform: scale(0.95);
+    .btn-reveal:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
-    /* Keyframes para Animaciones */
+    /* Keyframes */
     @keyframes pulseAura {
       0% { transform: scale(0.9); opacity: 0.6; }
       100% { transform: scale(1.15); opacity: 1; }
@@ -110,20 +143,31 @@
       30%, 50%, 70% { transform: translate3d(-6px, 0, 0) rotate(-6deg); }
       40%, 60% { transform: translate3d(6px, 0, 0) rotate(6deg); }
     }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.5); }
+      100% { opacity: 1; transform: scale(1); }
+    }
   </style>
 </head>
 <body>
 
   <div class="mystic-container">
-    <!-- Aura de luz Mística -->
     <div class="glow-aura"></div>
 
-    <!-- Vaso Místico -->
+    <!-- Vaso Místico con la RUTA RUTA CORREGIDA: ../images/vasomist.png -->
     <div class="glass-wrapper" id="glassWrapper">
-      <img src="images/vasomist.png" alt="Vaso Místico Hanari" class="glass-img" id="glassImg" />
+      <img src="../images/vasomist.png" alt="Vaso Místico Hanari" class="glass-img" id="glassImg" />
     </div>
 
-    <!-- Botón de Acción -->
+    <!-- Tarjeta de Premio que aparece al abrir -->
+    <div class="reward-card" id="rewardCard">
+      <h2>¡Felicidades! 🎉</h2>
+      <p>Has desbloqueado un descuento místico:</p>
+      <div class="coupon-code">HANARI2026</div>
+    </div>
+
+    <br>
     <button class="btn-reveal" id="btnReveal">Abrir Vaso Místico</button>
   </div>
 
@@ -131,23 +175,31 @@
     const glassWrapper = document.getElementById('glassWrapper');
     const glassImg = document.getElementById('glassImg');
     const btnReveal = document.getElementById('btnReveal');
+    const rewardCard = document.getElementById('rewardCard');
 
-    function triggerMysticEffect() {
-      // Evitar animaciones encimadas
-      if (glassImg.classList.contains('vibrate')) return;
+    function openMysticCup() {
+      btnReveal.disabled = true;
 
-      // Añadir animación de sacudida mística
+      // 1. Iniciar vibración
       glassImg.classList.add('vibrate');
 
-      // Remover clase al finalizar la animación
+      // 2. Transición y revelado
       setTimeout(() => {
-        glassImg.classList.remove('vibrate');
-      }, 500);
+        // Desvanecer el vaso
+        glassWrapper.style.opacity = '0';
+        glassWrapper.style.transform = 'scale(0.8)';
+
+        setTimeout(() => {
+          glassWrapper.style.display = 'none';
+          rewardCard.style.display = 'block'; // Mostrar tarjeta de regalo
+          btnReveal.textContent = '¡Descuento Revelado!';
+        }, 400);
+
+      }, 600);
     }
 
-    // Eventos
-    btnReveal.addEventListener('click', triggerMysticEffect);
-    glassWrapper.addEventListener('click', triggerMysticEffect);
+    btnReveal.addEventListener('click', openMysticCup);
+    glassWrapper.addEventListener('click', openMysticCup);
   </script>
 </body>
 </html>
