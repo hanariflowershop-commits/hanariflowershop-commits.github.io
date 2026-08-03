@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vaso Místico - Hanari</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #0f1015;
+      color: #ffffff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Contenedor Principal Adaptable */
+    .mystic-container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    /* Aura luminosa detrás del vaso */
+    .glow-aura {
+      position: absolute;
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(255, 215, 0, 0.35) 0%, rgba(138, 43, 226, 0.2) 50%, rgba(0, 0, 0, 0) 70%);
+      border-radius: 50%;
+      z-index: 1;
+      animation: pulseAura 3s infinite alternate ease-in-out;
+    }
+
+    /* Estilos de la imagen del Vaso */
+    .glass-wrapper {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 280px;
+      margin-bottom: 25px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .glass-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6));
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    .glass-wrapper:hover .glass-img {
+      transform: scale(1.03);
+      filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.5));
+    }
+
+    /* Animación de vibración tipo cofre al hacer click */
+    .vibrate {
+      animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    /* Botón de Interacción */
+    .btn-reveal {
+      position: relative;
+      z-index: 2;
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #111;
+      border: none;
+      padding: 14px 32px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-reveal:active {
+      transform: scale(0.95);
+    }
+
+    /* Keyframes para Animaciones */
+    @keyframes pulseAura {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      100% { transform: scale(1.15); opacity: 1; }
+    }
+
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-2px, 0, 0) rotate(-2deg); }
+      20%, 80% { transform: translate3d(4px, 0, 0) rotate(4deg); }
+      30%, 50%, 70% { transform: translate3d(-6px, 0, 0) rotate(-6deg); }
+      40%, 60% { transform: translate3d(6px, 0, 0) rotate(6deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="mystic-container">
+    <!-- Aura de luz Mística -->
+    <div class="glow-aura"></div>
+
+    <!-- Vaso Místico -->
+    <div class="glass-wrapper" id="glassWrapper">
+      <img src="images/vasomist.png" alt="Vaso Místico Hanari" class="glass-img" id="glassImg" />
+    </div>
+
+    <!-- Botón de Acción -->
+    <button class="btn-reveal" id="btnReveal">Abrir Vaso Místico</button>
+  </div>
+
+  <script>
+    const glassWrapper = document.getElementById('glassWrapper');
+    const glassImg = document.getElementById('glassImg');
+    const btnReveal = document.getElementById('btnReveal');
+
+    function triggerMysticEffect() {
+      // Evitar animaciones encimadas
+      if (glassImg.classList.contains('vibrate')) return;
+
+      // Añadir animación de sacudida mística
+      glassImg.classList.add('vibrate');
+
+      // Remover clase al finalizar la animación
+      setTimeout(() => {
+        glassImg.classList.remove('vibrate');
+      }, 500);
+    }
+
+    // Eventos
+    btnReveal.addEventListener('click', triggerMysticEffect);
+    glassWrapper.addEventListener('click', triggerMysticEffect);
+  </script>
+</body>
+</html>
