@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Panda Flappy</title>
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #000;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  background: #111;
+}
+
+#startBar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 85%;
+  max-width: 400px;
+  background: rgba(17, 17, 17, 0.9);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 20px;
+  font-size: 16px;
+  z-index: 10;
+  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.centered {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+  height: auto !important;
+  padding: 24px;
+  border-radius: 16px;
+  width: 85%;
+  max-width: 420px;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(8px);
+  border: 2px solid #4CAF50;
+}
+
+#scoreBox {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8px 16px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+  z-index: 5;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+#scoreIcon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+#score {
+  font-size: 22px;
+  font-weight: bold;
+  color: #111;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="gameCanvas"></canvas>
+<div id="startBar">CARGANDO RECURSOS...</div>
+
+<div id="scoreBox">
+  <img id="scoreIcon" src="Caraiconopanda.png" alt="Panda">
+  <span id="score">0</span>
+</div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const scoreText = document.getElementById("score");
+const startBar = document.getElementById("startBar");
+
+const isPC = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+/* 🔊 AUDIO LOCAL */
+const music = new Audio("dino.mp3");
+music.loop = true;
+music.volume = 0.25;
+music.setAttribute("playsinline", "");
+
+function playMusic() {
+  music.play().catch(() => {});
+}
+
+/* 📳 VIBRACIÓN */
+function vibrate(pattern) {
+  if (navigator.vibrate) { navigator.vibrate(pattern); }
+}
+
+/* 📐 RESIZE OPTIMIZADO */
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+/* 🖼️ PRECARGADOR DE IMÁGENES CON PROMESAS */
+function loadImage(path) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(img);
+    img.src = encodeURI(path);
+  });
+}
+
+const bambooPaths = [
+  "bambugordo.png", "bambugordonoche.png", "bambugorinvierno.png",
+  "bambugordootoño.png", "bambugordoprimavera.png", "bambugordosakuras.png"
+];
+
+const mobileBGPaths = [
+  "fondo1.png", "fondo1denoche.png", "fondoinvierno.png",
+  "fondootoño.png", "fondoprimavera.png", "fondosakuras.png"
+];
+
+const pcBGPaths = [
+  "fondo1horizontal.png", "fondo1denochehorizontal.png", "fondoinviernohorizontal.png",
+  "fondootoñohorizontal.png", "fondoprimaverahorizontal.png", "fondosakurashorizontal.png"
+];
+
+const spritePaths = {
+  run1: "corriendo1.png",
+  run2: "corriendo2.png",
+  midAir: "enmediodelsalto.png",
+  fall: "cayendo.png",
+  idle: "Quietodefrente.png",
+  dead: "muerte1.png"
+};
+
+let bambooSprites = [];
+let backgrounds = [];
+let sprites = {};
+let assetsLoaded = false;
+
+async function preloadAssets() {
+  const bgPaths = isPC ? pcBGPaths : mobileBGPaths;
+  
+  const [loadedBamboos, loadedBGs, loadedSpriteEntries] = await Promise.all([
+    Promise.all(bambooPaths.map(loadImage)),
+    Promise.all(bgPaths.map(loadImage)),
+    Promise.all(Object.entries(spritePaths).map(async ([key, path]) => [key, await loadImage(path)]))
+  ]);
+
+  bambooSprites = loadedBamboos;
+  backgrounds = loadedBGs;
+  sprites = Object.fromEntries(loadedSpriteEntries);
+
+  assetsLoaded = true;
+  startBar.innerText = "TOCAR / ESPACIO / CLICK PARA VOLAR";
+}
+preloadAssets();
+
+/* 🎮 ESTADO DEL JUEGO */
+let gameStarted = false, gameOver = false, gameWin = false, score = 0;
+let pipes = [], speed = 2.8, frame = 0;
+const pipeGap = 160; // Espacio vertical entre el bambú de arriba y abajo
+const pipeInterval = 110; // Frecuencia de aparición de bambús
+
+let panda = {
+  x: 80,
+  y: 0,
+  w: 50,
+  h: 50,
+  vy: 0,
+  gravity: 0.38,
+  jumpPower: -7.2,
+  rotation: 0
+};
+
+function resetGame() {
+  gameStarted = true;
+  gameOver = false;
+  gameWin = false;
+  score = 0;
+  speed = 2.8;
+  frame = 0;
+  pipes = [];
+  panda.y = canvas.height / 2 - panda.h / 2;
+  panda.vy = 0;
+  panda.rotation = 0;
+  
+  scoreText.innerText = "0";
+
+  /* 🎵 Reiniciar música */
+  music.currentTime = 0;
+  playMusic();
+
+  startBar.classList.remove("centered");
+  if (isPC) startBar.style.display = "none";
+  else startBar.innerText = "TOCAR PARA IMPULSARSE";
+}
+
+function getBGIndex() {
+  if (score >= 50) return 5;
+  return Math.floor(score / 10) % 5;
+}
+
+function drawBG() {
+  const bg = backgrounds[getBGIndex()];
+  if (bg && bg.complete && bg.naturalWidth > 0) {
+    const scale = Math.max(canvas.width / bg.width, canvas.height / bg.height);
+    ctx.drawImage(bg,
+      (canvas.width - bg.width * scale) / 2,
+      (canvas.height - bg.height * scale) / 2,
+      bg.width * scale,
+      bg.height * scale
+    );
+  } else {
+    ctx.fillStyle = "#1a1a1a";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+}
+
+function showVictory() {
+  const code = "HC" + Math.floor(Math.random() * 90000 + 10000);
+  startBar.classList.add("centered");
+  startBar.style.display = "flex";
+  startBar.innerHTML = `
+    🏆 ¡VICTORIA!<br>
+    Liur y Charni están orgullosos de ti<br><br>
+    🎁 Ganaste un Hana Café<br>
+    🎟 Código: <b>${code}</b><br>
+    <small>Presenta captura</small>
+  `;
+}
+
+function flap() {
+  if (gameStarted && !gameOver) {
+    panda.vy = panda.jumpPower;
+    vibrate(10);
+  }
+}
+
+function drawPanda() {
+  let img;
+
+  if (!gameStarted) { 
+    img = sprites.idle; 
+  } else if (gameOver) { 
+    img = sprites.dead; 
+  } else {
+    img = panda.vy < 0 ? sprites.midAir : sprites.fall;
+  }
+
+  if (gameStarted && !gameOver) {
+    panda.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 6, panda.vy * 0.08));
+  } else if (gameOver) {
+    panda.rotation = Math.PI / 2;
+  } else {
+    panda.rotation = 0;
+  }
+
+  ctx.save();
+  ctx.translate(panda.x + panda.w / 2, panda.y + panda.h / 2);
+  ctx.rotate(panda.rotation);
+
+  if (img && img.complete && img.naturalWidth > 0) {
+    ctx.drawImage(img, -panda.w / 2, -panda.h / 2, panda.w, panda.h);
+  } else {
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(-panda.w / 2, -panda.h / 2, panda.w, panda.h);
+  }
+  ctx.restore();
+}
+
+function drawPipes() {
+  if (gameWin) return;
+  const bambooSprite = bambooSprites[getBGIndex()];
+
+  pipes.forEach(pipe => {
+    // Bambú Superior (Invertido)
+    ctx.save();
+    if (bambooSprite && bambooSprite.complete && bambooSprite.naturalWidth > 0) {
+      ctx.translate(pipe.x + pipe.w / 2, pipe.topH / 2);
+      ctx.scale(1, -1);
+      ctx.drawImage(bambooSprite, -pipe.w / 2, -pipe.topH / 2, pipe.w, pipe.topH);
+    } else {
+      ctx.fillStyle = "#4CAF50";
+      ctx.fillRect(pipe.x, 0, pipe.w, pipe.topH);
+    }
+    ctx.restore();
+
+    // Bambú Inferior
+    if (bambooSprite && bambooSprite.complete && bambooSprite.naturalWidth > 0) {
+      ctx.drawImage(bambooSprite, pipe.x, pipe.bottomY, pipe.w, pipe.bottomH);
+    } else {
+      ctx.fillStyle = "#4CAF50";
+      ctx.fillRect(pipe.x, pipe.bottomY, pipe.w, pipe.bottomH);
+    }
+  });
+}
+
+function update() {
+  if (!gameStarted || gameOver) return;
+
+  frame++;
+  speed = 2.8 + Math.floor(score / 10) * 0.2;
+
+  panda.vy += panda.gravity;
+  panda.y += panda.vy;
+
+  if (panda.y < 0) {
+    panda.y = 0;
+    panda.vy = 0;
+  }
+
+  if (panda.y + panda.h >= canvas.height) {
+    panda.y = canvas.height - panda.h;
+    triggerGameOver();
+  }
+
+  if (frame % pipeInterval === 0 && !gameWin) {
+    const minPipe = 60;
+    const maxPipeH = canvas.height - pipeGap - minPipe - 80;
+    const topH = Math.floor(Math.random() * (maxPipeH - minPipe + 1)) + minPipe;
+    const bottomY = topH + pipeGap;
+    const bottomH = canvas.height - bottomY;
+
+    pipes.push({
+      x: canvas.width,
+      w: 45,
+      topH: topH,
+      bottomY: bottomY,
+      bottomH: bottomH,
+      passed: false
+    });
+  }
+
+  pipes.forEach(pipe => {
+    pipe.x -= speed;
+
+    if (!pipe.passed && pipe.x + pipe.w < panda.x) {
+      pipe.passed = true;
+      score++;
+      scoreText.innerText = score;
+
+      if (score >= 50 && !gameWin) {
+        gameWin = true;
+        showVictory();
+      }
+    }
+
+    const pandaPadding = 6;
+    const px = panda.x + pandaPadding;
+    const py = panda.y + pandaPadding;
+    const pw = panda.w - pandaPadding * 2;
+    const ph = panda.h - pandaPadding * 2;
+
+    if (px < pipe.x + pipe.w && px + pw > pipe.x && py < pipe.topH) {
+      triggerGameOver();
+    }
+
+    if (px < pipe.x + pipe.w && px + pw > pipe.x && py + ph > pipe.bottomY) {
+      triggerGameOver();
+    }
+  });
+
+  pipes = pipes.filter(pipe => pipe.x + pipe.w > 0);
+}
+
+function triggerGameOver() {
+  gameOver = true;
+  music.pause();
+  vibrate([60, 40, 80]);
+  startBar.innerText = "¡PERDISTE! TOCAR EN CUALQUIER LUGAR PARA REINICIAR";
+  startBar.style.display = "flex";
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawBG();
+  drawPipes();
+  drawPanda();
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+function handleGlobalInput(e) {
+  if (!assetsLoaded) return;
+
+  if (!gameStarted || gameOver) {
+    resetGame();
+  } else {
+    playMusic();
+    flap();
+  }
+}
+
+window.addEventListener("pointerdown", (e) => {
+  handleGlobalInput(e);
+});
+
+window.addEventListener("keydown", e => {
+  if (e.code === "Space" || e.code === "ArrowUp" || e.code === "Enter") {
+    e.preventDefault();
+    handleGlobalInput(e);
+  }
+});
+
+requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>
