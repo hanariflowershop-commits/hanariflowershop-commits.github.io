@@ -98,7 +98,7 @@ canvas {
 <div id="startBar">CARGANDO RECURSOS...</div>
 
 <div id="scoreBox">
-  <img id="scoreIcon" src="Caraiconopanda.png" alt="Panda">
+  <img id="scoreIcon" src="../retos/Caraiconopanda.png" alt="Panda">
   <span id="score">0</span>
 </div>
 
@@ -110,8 +110,8 @@ const startBar = document.getElementById("startBar");
 
 const isPC = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
-/* 🔊 AUDIO LOCAL */
-const music = new Audio("dino.mp3");
+/* 🔊 AUDIO LOCAL DESDE LA CARPETA RETOS */
+const music = new Audio("../retos/dino.mp3");
 music.loop = true;
 music.volume = 0.25;
 music.setAttribute("playsinline", "");
@@ -143,28 +143,29 @@ function loadImage(path) {
   });
 }
 
+/* RUTA A LA CARPETA RETOS DESDE LA CARPETA FLAPPY */
 const bambooPaths = [
-  "bambugordo.png", "bambugordonoche.png", "bambugorinvierno.png",
-  "bambugordootoño.png", "bambugordoprimavera.png", "bambugordosakuras.png"
+  "../retos/bambugordo.png", "../retos/bambugordonoche.png", "../retos/bambugorinvierno.png",
+  "../retos/bambugordootoño.png", "../retos/bambugordoprimavera.png", "../retos/bambugordosakuras.png"
 ];
 
 const mobileBGPaths = [
-  "fondo1.png", "fondo1denoche.png", "fondoinvierno.png",
-  "fondootoño.png", "fondoprimavera.png", "fondosakuras.png"
+  "../retos/fondo1.png", "../retos/fondo1denoche.png", "../retos/fondoinvierno.png",
+  "../retos/fondootoño.png", "../retos/fondoprimavera.png", "../retos/fondosakuras.png"
 ];
 
 const pcBGPaths = [
-  "fondo1horizontal.png", "fondo1denochehorizontal.png", "fondoinviernohorizontal.png",
-  "fondootoñohorizontal.png", "fondoprimaverahorizontal.png", "fondosakurashorizontal.png"
+  "../retos/fondo1horizontal.png", "../retos/fondo1denochehorizontal.png", "../retos/fondoinviernohorizontal.png",
+  "../retos/fondootoñohorizontal.png", "../retos/fondoprimaverahorizontal.png", "../retos/fondosakurashorizontal.png"
 ];
 
 const spritePaths = {
-  run1: "corriendo1.png",
-  run2: "corriendo2.png",
-  midAir: "enmediodelsalto.png",
-  fall: "cayendo.png",
-  idle: "Quietodefrente.png",
-  dead: "muerte1.png"
+  run1: "../retos/corriendo1.png",
+  run2: "../retos/corriendo2.png",
+  midAir: "../retos/enmediodelsalto.png",
+  fall: "../retos/cayendo.png",
+  idle: "../retos/Quietodefrente.png",
+  dead: "../retos/muerte1.png"
 };
 
 let bambooSprites = [];
@@ -193,8 +194,8 @@ preloadAssets();
 /* 🎮 ESTADO DEL JUEGO */
 let gameStarted = false, gameOver = false, gameWin = false, score = 0;
 let pipes = [], speed = 2.8, frame = 0;
-const pipeGap = 160; // Espacio vertical entre el bambú de arriba y abajo
-const pipeInterval = 110; // Frecuencia de aparición de bambús
+const pipeGap = 160; 
+const pipeInterval = 110; 
 
 let panda = {
   x: 80,
@@ -308,7 +309,6 @@ function drawPipes() {
   const bambooSprite = bambooSprites[getBGIndex()];
 
   pipes.forEach(pipe => {
-    // Bambú Superior (Invertido)
     ctx.save();
     if (bambooSprite && bambooSprite.complete && bambooSprite.naturalWidth > 0) {
       ctx.translate(pipe.x + pipe.w / 2, pipe.topH / 2);
@@ -320,7 +320,6 @@ function drawPipes() {
     }
     ctx.restore();
 
-    // Bambú Inferior
     if (bambooSprite && bambooSprite.complete && bambooSprite.naturalWidth > 0) {
       ctx.drawImage(bambooSprite, pipe.x, pipe.bottomY, pipe.w, pipe.bottomH);
     } else {
