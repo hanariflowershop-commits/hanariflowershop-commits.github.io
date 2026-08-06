@@ -41,14 +41,16 @@ canvas {
 }
 
 .centered {
+  position: fixed !important;
   top: 50% !important;
+  left: 50% !important;
   bottom: auto !important;
-  transform: translateY(-50%);
+  transform: translate(-50%, -50%) !important;
   height: auto !important;
   padding: 20px;
   border-radius: 14px;
   width: 85%;
-  left: 7.5%;
+  max-width: 450px;
   box-sizing: border-box;
 }
 
@@ -105,17 +107,14 @@ const startBar = document.getElementById("startBar");
 
 const isPC = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
-/* 🔊 AUDIO */
-const music = new Audio("https://res.cloudinary.com/dncyr4d1n/video/upload/v1777533798/Vivaldi_s_Winter_The_Four_Seasons_compressed_nvrix6.mp3");
+/* 🔊 AUDIO LOCAL */
+const music = new Audio("dino.mp3");
 music.loop = true;
 music.volume = 0.25;
 music.setAttribute("playsinline", "");
 
-let audioStarted = false;
-
-function startMusic() {
-  if (audioStarted && !music.paused) return;
-  music.play().then(() => { audioStarted = true; }).catch(() => {});
+function playMusic() {
+  music.play().catch(() => {});
 }
 
 /* 📳 VIBRACIÓN */
@@ -219,11 +218,9 @@ function resetGame() {
   dino.grounded = true;
   dino.frame = 0;
   
-  /* 🎵 Reiniciar y reproducir música desde el inicio */
+  /* 🎵 Reiniciar música desde el origen al empezar */
   music.currentTime = 0;
-  music.play().then(() => {
-    audioStarted = true;
-  }).catch(() => {});
+  playMusic();
 
   startBar.classList.remove("centered");
   if (isPC) startBar.style.display = "none";
@@ -358,7 +355,7 @@ function jump() {
   }
 }
 
-/* 🎯 CONTROL GLOBAL DE ENTRADA (Tocar en cualquier parte) */
+/* 🎯 CONTROL GLOBAL DE ENTRADA */
 function handleGlobalInput(e) {
   if (!assetsLoaded) return;
 
@@ -367,7 +364,7 @@ function handleGlobalInput(e) {
   } else if (gameOver) {
     resetGame();
   } else {
-    startMusic();
+    playMusic();
     jump();
   }
 }
