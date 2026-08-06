@@ -194,17 +194,20 @@ preloadAssets();
 /* 🎮 ESTADO DEL JUEGO */
 let gameStarted = false, gameOver = false, gameWin = false, score = 0;
 let pipes = [], speed = 2.8, frame = 0;
-const pipeGap = 160; 
-const pipeInterval = 110; 
+
+/* 📏 TAMAÑOS Y DISTANCIAS AJUSTADAS */
+const pipeGap = 210; 
+const pipeInterval = 120; 
+const pipeWidth = 65; 
 
 let panda = {
   x: 80,
   y: 0,
-  w: 50,
-  h: 50,
+  w: 80,  
+  h: 80,  
   vy: 0,
   gravity: 0.38,
-  jumpPower: -7.2,
+  jumpPower: -7.5,
   rotation: 0
 };
 
@@ -349,7 +352,7 @@ function update() {
   }
 
   if (frame % pipeInterval === 0 && !gameWin) {
-    const minPipe = 60;
+    const minPipe = 70;
     const maxPipeH = canvas.height - pipeGap - minPipe - 80;
     const topH = Math.floor(Math.random() * (maxPipeH - minPipe + 1)) + minPipe;
     const bottomY = topH + pipeGap;
@@ -357,7 +360,7 @@ function update() {
 
     pipes.push({
       x: canvas.width,
-      w: 45,
+      w: pipeWidth,
       topH: topH,
       bottomY: bottomY,
       bottomH: bottomH,
@@ -379,11 +382,15 @@ function update() {
       }
     }
 
-    const pandaPadding = 6;
-    const px = panda.x + pandaPadding;
-    const py = panda.y + pandaPadding;
-    const pw = panda.w - pandaPadding * 2;
-    const ph = panda.h - pandaPadding * 2;
+    /* 🎯 HITBOX AJUSTADA A LOS PNGs */
+    const isMidAir = panda.vy < 0;
+    const paddingX = isMidAir ? 18 : 14; 
+    const paddingY = isMidAir ? 12 : 16; 
+
+    const px = panda.x + paddingX;
+    const py = panda.y + paddingY;
+    const pw = panda.w - paddingX * 2;
+    const ph = panda.h - paddingY * 2;
 
     if (px < pipe.x + pipe.w && px + pw > pipe.x && py < pipe.topH) {
       triggerGameOver();
