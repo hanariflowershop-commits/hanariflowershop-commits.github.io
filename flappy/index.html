@@ -195,16 +195,16 @@ preloadAssets();
 let gameStarted = false, gameOver = false, gameWin = false, score = 0;
 let pipes = [], speed = 2.8, frame = 0;
 
-/* 📏 TAMAÑOS Y DISTANCIAS AJUSTADAS */
-const pipeGap = 210; 
+/* 📏 TAMAÑOS Y DISTANCIAS (+12% AUMENTO) */
+const pipeGap = 235; 
 const pipeInterval = 120; 
-const pipeWidth = 65; 
+const pipeWidth = 73; 
 
 let panda = {
   x: 80,
   y: 0,
-  w: 80,  
-  h: 80,  
+  w: 90,  // +12%
+  h: 90,  
   vy: 0,
   gravity: 0.38,
   jumpPower: -7.5,
@@ -269,7 +269,7 @@ function showVictory() {
 }
 
 function flap() {
-  if (gameStarted && !gameOver) {
+  if (gameStarted && !gameOver && !gameWin) {
     panda.vy = panda.jumpPower;
     vibrate(10);
   }
@@ -333,7 +333,7 @@ function drawPipes() {
 }
 
 function update() {
-  if (!gameStarted || gameOver) return;
+  if (!gameStarted || gameOver || gameWin) return;
 
   frame++;
   speed = 2.8 + Math.floor(score / 10) * 0.2;
@@ -382,10 +382,10 @@ function update() {
       }
     }
 
-    /* 🎯 HITBOX AJUSTADA A LOS PNGs */
+    /* 🎯 HITBOX AJUSTADA AL NUEVO TAMAÑO (+12%) */
     const isMidAir = panda.vy < 0;
-    const paddingX = isMidAir ? 18 : 14; 
-    const paddingY = isMidAir ? 12 : 16; 
+    const paddingX = isMidAir ? 20 : 16; 
+    const paddingY = isMidAir ? 14 : 18; 
 
     const px = panda.x + paddingX;
     const py = panda.y + paddingY;
@@ -405,6 +405,7 @@ function update() {
 }
 
 function triggerGameOver() {
+  if (gameWin) return;
   gameOver = true;
   music.pause();
   vibrate([60, 40, 80]);
@@ -427,6 +428,8 @@ function loop() {
 
 function handleGlobalInput(e) {
   if (!assetsLoaded) return;
+
+  if (gameWin) return;
 
   if (!gameStarted || gameOver) {
     resetGame();
