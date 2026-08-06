@@ -114,7 +114,7 @@ music.setAttribute("playsinline", "");
 let audioStarted = false;
 
 function startMusic() {
-  if (audioStarted) return;
+  if (audioStarted && !music.paused) return;
   music.play().then(() => { audioStarted = true; }).catch(() => {});
 }
 
@@ -145,7 +145,7 @@ function loadImage(path) {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => resolve(img); // Continuar aunque falle una textura
+    img.onerror = () => resolve(img);
     img.src = encodeURI(path);
   });
 }
@@ -219,6 +219,12 @@ function resetGame() {
   dino.grounded = true;
   dino.frame = 0;
   
+  /* 🎵 Reiniciar y reproducir música desde el inicio */
+  music.currentTime = 0;
+  music.play().then(() => {
+    audioStarted = true;
+  }).catch(() => {});
+
   startBar.classList.remove("centered");
   if (isPC) startBar.style.display = "none";
   else startBar.innerText = "TOCAR PARA SALTAR";
@@ -354,22 +360,19 @@ function jump() {
 
 /* 🎯 CONTROL GLOBAL DE ENTRADA (Tocar en cualquier parte) */
 function handleGlobalInput(e) {
-  if (!assetsLoaded) return; // Esperar a que carguen las texturas
-
-  startMusic();
+  if (!assetsLoaded) return;
 
   if (!gameStarted) {
     resetGame();
   } else if (gameOver) {
     resetGame();
   } else {
+    startMusic();
     jump();
   }
 }
 
-// Evento unificado para pantalla/mouse en toda la ventana
 window.addEventListener("pointerdown", (e) => {
-  // Evitamos interferir si hace clic en enlaces o UI específica
   handleGlobalInput(e);
 });
 
