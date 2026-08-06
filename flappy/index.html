@@ -203,7 +203,7 @@ const pipeWidth = 73;
 let panda = {
   x: 80,
   y: 0,
-  w: 90,  // +12%
+  w: 90,  
   h: 90,  
   vy: 0,
   gravity: 0.38,
@@ -282,12 +282,16 @@ function drawPanda() {
     img = sprites.idle; 
   } else if (gameOver) { 
     img = sprites.dead; 
+  } else if (gameWin) {
+    img = sprites.midAir; 
   } else {
     img = panda.vy < 0 ? sprites.midAir : sprites.fall;
   }
 
-  if (gameStarted && !gameOver) {
+  if (gameStarted && !gameOver && !gameWin) {
     panda.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 6, panda.vy * 0.08));
+  } else if (gameWin) {
+    panda.rotation = 0; // Vuelo horizontal recto al ganar
   } else if (gameOver) {
     panda.rotation = Math.PI / 2;
   } else {
@@ -333,7 +337,15 @@ function drawPipes() {
 }
 
 function update() {
-  if (!gameStarted || gameOver || gameWin) return;
+  if (!gameStarted || gameOver) return;
+
+  /* Modo vuelo infinito continuo al ganar */
+  if (gameWin) {
+    panda.vy = 0; // Se elimina la caída
+    const targetY = canvas.height / 2 - panda.h / 2;
+    panda.y += (targetY - panda.y) * 0.05; // Estabilización suave en el centro
+    return;
+  }
 
   frame++;
   speed = 2.8 + Math.floor(score / 10) * 0.2;
@@ -378,11 +390,11 @@ function update() {
 
       if (score >= 50 && !gameWin) {
         gameWin = true;
+        pipes = []; // Limpieza de obstáculos al ganar
         showVictory();
       }
     }
 
-    /* 🎯 HITBOX AJUSTADA AL NUEVO TAMAÑO (+12%) */
     const isMidAir = panda.vy < 0;
     const paddingX = isMidAir ? 20 : 16; 
     const paddingY = isMidAir ? 14 : 18; 
@@ -429,7 +441,7 @@ function loop() {
 function handleGlobalInput(e) {
   if (!assetsLoaded) return;
 
-  if (gameWin) return;
+  if (gameWin) return; // Mantiene el modal de victoria fijo
 
   if (!gameStarted || gameOver) {
     resetGame();
