@@ -2,82 +2,87 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Panda Runner</title>
 
 <style>
 html, body {
-  margin:0;
-  padding:0;
-  background:#000;
-  overflow:hidden;
-  user-select:none;
-  -webkit-user-select:none;
-  -webkit-touch-callout:none;
-  touch-action:manipulation;
+  margin: 0;
+  padding: 0;
+  background: #000;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
-canvas{
-  display:block;
-  width:100vw;
-  height:65vh;
-  background:#111;
+canvas {
+  display: block;
+  width: 100vw;
+  height: 65vh;
+  background: #111;
 }
 
-#startBar{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  height:70px;
-  background:#111;
-  color:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:16px;
-  z-index:10;
-  text-align:center;
+#startBar {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 70px;
+  background: #111;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  z-index: 10;
+  text-align: center;
 }
 
-.centered{
-  top:50% !important;
-  bottom:auto !important;
-  transform:translateY(-50%);
-  height:auto !important;
-  padding:20px;
-  border-radius:14px;
-  width:85%;
-  left:7.5%;
+.centered {
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%);
+  height: auto !important;
+  padding: 20px;
+  border-radius: 14px;
+  width: 85%;
+  left: 7.5%;
+  box-sizing: border-box;
 }
 
-@media (hover:hover) and (pointer:fine){
-  #startBar{
-    top:65vh;
-    bottom:auto;
+@media (hover: hover) and (pointer: fine) {
+  #startBar {
+    top: 65vh;
+    bottom: auto;
   }
 }
 
-#scoreBox{
-  position:fixed;
-  top:20vh;
-  right:10px;
-  display:flex;
-  align-items:center;
-  gap:9px;
-  background:rgba(255,255,255,0.7);
-  padding:9px 15px;
-  border-radius:12px;
+#scoreBox {
+  position: fixed;
+  top: 20vh;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 8px 14px;
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  z-index: 5;
 }
 
-#scoreIcon{
-  width:36px;
-  height:36px;
+#scoreIcon {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
 }
 
-#score{
-  font-size:27px;
-  font-weight:bold;
-  color:#111;
+#score {
+  font-size: 24px;
+  font-weight: bold;
+  color: #111;
 }
 </style>
 </head>
@@ -85,10 +90,9 @@ canvas{
 <body>
 
 <canvas id="gameCanvas"></canvas>
-<div id="startBar">TOCAR / SPACE / ENTER</div>
+<div id="startBar">CARGANDO RECURSOS...</div>
 
 <div id="scoreBox">
-  <!-- Sin la carpeta "retos/", ya que index.html está en la misma carpeta -->
   <img id="scoreIcon" src="Caraiconopanda.png" alt="Panda">
   <span id="score">0</span>
 </div>
@@ -102,92 +106,136 @@ const startBar = document.getElementById("startBar");
 const isPC = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
 /* 🔊 AUDIO */
-const music = document.createElement("audio");
-music.src = "https://res.cloudinary.com/dncyr4d1n/video/upload/v1777533798/Vivaldi_s_Winter_The_Four_Seasons_compressed_nvrix6.mp3";
+const music = new Audio("https://res.cloudinary.com/dncyr4d1n/video/upload/v1777533798/Vivaldi_s_Winter_The_Four_Seasons_compressed_nvrix6.mp3");
 music.loop = true;
 music.volume = 0.25;
 music.setAttribute("playsinline", "");
-music.setAttribute("webkit-playsinline", "");
 
 let audioStarted = false;
 
-function startMusic(){
-  if(audioStarted) return;
-  music.play().then(()=>{ audioStarted = true; }).catch(()=>{});
+function startMusic() {
+  if (audioStarted) return;
+  music.play().then(() => { audioStarted = true; }).catch(() => {});
 }
 
-/* 📳 Vibración */
-function vibrate(pattern){
-  if(navigator.vibrate){ navigator.vibrate(pattern); }
+/* 📳 VIBRACIÓN */
+function vibrate(pattern) {
+  if (navigator.vibrate) { navigator.vibrate(pattern); }
 }
 
-let lastStep=0;
-function stepVibration(){
+let lastStep = 0;
+function stepVibration() {
   const now = Date.now();
-  if(now - lastStep > 200){
+  if (now - lastStep > 200) {
     vibrate(5);
     lastStep = now;
   }
 }
 
-/* Resize */
-function resize(){
+/* 📐 RESIZE OPTIMIZADO */
+function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight * 0.65;
 }
 resize();
 window.addEventListener("resize", resize);
 
-function load(path){
-  const img = new Image();
-  img.src = encodeURI(path);
-  return img;
+/* 🖼️ PRECARGADOR DE IMÁGENES CON PROMESAS */
+function loadImage(path) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(img); // Continuar aunque falle una textura
+    img.src = encodeURI(path);
+  });
 }
 
-/* 🌿 Bambús (mismo directorio) */
-const bambooSprites = [
-  load("bambugordo.png"),
-  load("bambugordonoche.png"),
-  load("bambugorinvierno.png"),
-  load("bambugordootoño.png"),
-  load("bambugordoprimavera.png"),
-  load("bambugordosakuras.png")
+const bambooPaths = [
+  "bambugordo.png", "bambugordonoche.png", "bambugorinvierno.png",
+  "bambugordootoño.png", "bambugordoprimavera.png", "bambugordosakuras.png"
 ];
 
-/* Fondos Móvil */
-const backgroundsMobile = [
-  load("fondo1.png"),
-  load("fondo1denoche.png"),
-  load("fondoinvierno.png"),
-  load("fondootoño.png"),
-  load("fondoprimavera.png"),
-  load("fondosakuras.png")
+const mobileBGPaths = [
+  "fondo1.png", "fondo1denoche.png", "fondoinvierno.png",
+  "fondootoño.png", "fondoprimavera.png", "fondosakuras.png"
 ];
 
-/* Fondos PC */
-const backgroundsPC = [
-  load("fondo1horizontal.png"),
-  load("fondo1denochehorizontal.png"),
-  load("fondoinviernohorizontal.png"),
-  load("fondootoñohorizontal.png"),
-  load("fondoprimaverahorizontal.png"),
-  load("fondosakurashorizontal.png")
+const pcBGPaths = [
+  "fondo1horizontal.png", "fondo1denochehorizontal.png", "fondoinviernohorizontal.png",
+  "fondootoñohorizontal.png", "fondoprimaverahorizontal.png", "fondosakurashorizontal.png"
 ];
 
-const backgrounds = isPC ? backgroundsPC : backgroundsMobile;
+const spritePaths = {
+  run1: "corriendo1.png",
+  run2: "corriendo2.png",
+  midAir: "enmediodelsalto.png",
+  fall: "cayendo.png",
+  idle: "Quietodefrente.png",
+  dead: "muerte1.png"
+};
 
-function getBGIndex(){
-  if(score >= 910) return 5;
+let bambooSprites = [];
+let backgrounds = [];
+let sprites = {};
+let assetsLoaded = false;
+
+async function preloadAssets() {
+  const bgPaths = isPC ? pcBGPaths : mobileBGPaths;
+  
+  const [loadedBamboos, loadedBGs, loadedSpriteEntries] = await Promise.all([
+    Promise.all(bambooPaths.map(loadImage)),
+    Promise.all(bgPaths.map(loadImage)),
+    Promise.all(Object.entries(spritePaths).map(async ([key, path]) => [key, await loadImage(path)]))
+  ]);
+
+  bambooSprites = loadedBamboos;
+  backgrounds = loadedBGs;
+  sprites = Object.fromEntries(loadedSpriteEntries);
+
+  assetsLoaded = true;
+  startBar.innerText = "TOCAR EN CUALQUIER PARTE / SPACE / ENTER";
+}
+preloadAssets();
+
+/* 🎮 ESTADO DEL JUEGO */
+let gameStarted = false, gameOver = false, gameWin = false, score = 0;
+let obstacles = [], speed = 4.6, frame = 0;
+
+let dino = { x: 50, y: 0, w: 60, h: 60, vy: 0, g: 0.8, jump: -14, grounded: true, frame: 0 };
+
+function groundY() { return canvas.height - dino.h - 10; }
+dino.y = groundY();
+
+function resetGame() {
+  gameStarted = true;
+  gameOver = false;
+  gameWin = false;
+  score = 0;
+  speed = 4.6;
+  frame = 0;
+  obstacles = [];
+  dino.y = groundY();
+  dino.vy = 0;
+  dino.grounded = true;
+  dino.frame = 0;
+  
+  startBar.classList.remove("centered");
+  if (isPC) startBar.style.display = "none";
+  else startBar.innerText = "TOCAR PARA SALTAR";
+}
+
+function getBGIndex() {
+  if (score >= 910) return 5;
   return Math.floor(score / 90) % 5;
 }
 
-function drawBG(){
+function drawBG() {
   const bg = backgrounds[getBGIndex()];
-  if(bg && bg.complete && bg.naturalWidth > 0){
-    const scale = Math.max(canvas.width/bg.width, canvas.height/bg.height);
+  if (bg && bg.complete && bg.naturalWidth > 0) {
+    const scale = Math.max(canvas.width / bg.width, canvas.height / bg.height);
     ctx.drawImage(bg,
-      (canvas.width - bg.width * scale)/2,
-      (canvas.height - bg.height * scale)/2,
+      (canvas.width - bg.width * scale) / 2,
+      (canvas.height - bg.height * scale) / 2,
       bg.width * scale,
       bg.height * scale
     );
@@ -197,29 +245,10 @@ function drawBG(){
   }
 }
 
-/* 🐼 Personaje */
-const sprites = {
-  run1: load("corriendo1.png"),
-  run2: load("corriendo2.png"),
-  midAir: load("enmediodelsalto.png"),
-  fall: load("cayendo.png"),
-  idle: load("Quietodefrente.png"),
-  dead: load("muerte1.png")
-};
-
-let gameStarted=false, gameOver=false, gameWin=false, score=0;
-
-let dino={x:50,y:0,w:60,h:60,vy:0,g:0.8,jump:-14,grounded:true,frame:0};
-
-function groundY(){ return canvas.height-dino.h-10; }
-dino.y=groundY();
-
-let obstacles=[], speed=4.6, frame=0;
-
-function showVictory(){
-  const code = "HC" + Math.floor(Math.random()*90000+10000);
+function showVictory() {
+  const code = "HC" + Math.floor(Math.random() * 90000 + 10000);
   startBar.classList.add("centered");
-  startBar.style.display="flex";
+  startBar.style.display = "flex";
   startBar.innerHTML = `
     🏆 ¡VICTORIA!<br>
     Liur y Charni están orgullosos de ti<br><br>
@@ -229,35 +258,35 @@ function showVictory(){
   `;
 }
 
-function drawDino(){
-  let img, scale=1;
+function drawDino() {
+  let img, scale = 1;
 
-  if(!gameStarted){ img=sprites.idle; }
-  else if(gameOver){ img=sprites.dead; scale=1.1; }
-  else{
-    if(!dino.grounded){
-      img = dino.vy<0 ? sprites.midAir : sprites.fall;
-      scale=1.2;
+  if (!gameStarted) { img = sprites.idle; }
+  else if (gameOver) { img = sprites.dead; scale = 1.1; }
+  else {
+    if (!dino.grounded) {
+      img = dino.vy < 0 ? sprites.midAir : sprites.fall;
+      scale = 1.2;
     } else {
-      img=(Math.floor(dino.frame/8)%2===0)?sprites.run1:sprites.run2;
+      img = (Math.floor(dino.frame / 8) % 2 === 0) ? sprites.run1 : sprites.run2;
       stepVibration();
     }
   }
 
-  if(img && img.complete && img.naturalWidth > 0){
-    ctx.drawImage(img,dino.x,dino.y-(dino.h*scale-dino.h),dino.w*scale,dino.h*scale);
+  if (img && img.complete && img.naturalWidth > 0) {
+    ctx.drawImage(img, dino.x, dino.y - (dino.h * scale - dino.h), dino.w * scale, dino.h * scale);
   } else {
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(dino.x, dino.y, dino.w, dino.h);
   }
 }
 
-function drawObs(){
-  if(gameWin) return;
+function drawObs() {
+  if (gameWin) return;
   const sprite = bambooSprites[getBGIndex()];
-  obstacles.forEach(o=>{
-    if(sprite && sprite.complete && sprite.naturalWidth > 0){
-      ctx.drawImage(sprite,o.x,o.y,o.w,o.h);
+  obstacles.forEach(o => {
+    if (sprite && sprite.complete && sprite.naturalWidth > 0) {
+      ctx.drawImage(sprite, o.x, o.y, o.w, o.h);
     } else {
       ctx.fillStyle = "#4CAF50";
       ctx.fillRect(o.x, o.y, o.w, o.h);
@@ -265,82 +294,89 @@ function drawObs(){
   });
 }
 
-function update(){
-  if(!gameStarted||gameOver) return;
+function update() {
+  if (!gameStarted || gameOver) return;
 
   frame++; dino.frame++;
-  score+=0.1;
-  scoreText.innerText=Math.floor(score);
+  score += 0.1;
+  scoreText.innerText = Math.floor(score);
 
-  speed = 4.6 + Math.floor(score/200)*0.5;
+  speed = 4.6 + Math.floor(score / 200) * 0.5;
 
-  if(score>=1000&&!gameWin){
-    gameWin=true;
+  if (score >= 1000 && !gameWin) {
+    gameWin = true;
     showVictory();
   }
 
-  if(frame%120===0&&!gameWin){
-    obstacles.push({x:canvas.width,y:canvas.height-60,w:18,h:50});
+  if (frame % 120 === 0 && !gameWin) {
+    obstacles.push({ x: canvas.width, y: canvas.height - 60, w: 18, h: 50 });
   }
 
-  dino.vy+=dino.g;
-  dino.y+=dino.vy;
+  dino.vy += dino.g;
+  dino.y += dino.vy;
 
-  if(dino.y>=groundY()){
-    dino.y=groundY(); dino.vy=0; dino.grounded=true;
+  if (dino.y >= groundY()) {
+    dino.y = groundY(); dino.vy = 0; dino.grounded = true;
   }
 
-  obstacles.forEach(o=>o.x-=speed);
+  obstacles.forEach(o => o.x -= speed);
 
-  obstacles.forEach(o=>{
-    if(dino.x<o.x+o.w&&dino.x+dino.w>o.x&&dino.y<o.y+o.h&&dino.y+dino.h>o.y){
-      gameOver=true;
+  obstacles.forEach(o => {
+    if (dino.x < o.x + o.w && dino.x + dino.w > o.x && dino.y < o.y + o.h && dino.y + dino.h > o.y) {
+      gameOver = true;
       music.pause();
-      vibrate([60,40,80]);
-      startBar.innerText="REINICIAR / SPACE";
-      startBar.style.display="flex";
+      vibrate([60, 40, 80]);
+      startBar.innerText = "¡PERDISTE! TOCAR EN CUALQUIER LUGAR PARA REINICIAR";
+      startBar.style.display = "flex";
     }
   });
 
-  obstacles=obstacles.filter(o=>o.x+o.w>0);
+  obstacles = obstacles.filter(o => o.x + o.w > 0);
 }
 
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBG(); drawDino(); drawObs();
 }
 
-function loop(){ update(); draw(); requestAnimationFrame(loop); }
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
 
-function jump(){
-  if(gameStarted&&!gameOver&&dino.grounded){
-    dino.vy=dino.jump;
-    dino.grounded=false;
+function jump() {
+  if (gameStarted && !gameOver && dino.grounded) {
+    dino.vy = dino.jump;
+    dino.grounded = false;
   }
 }
 
-function handleInput(e){
-  if(e.type === 'touchstart') e.preventDefault();
+/* 🎯 CONTROL GLOBAL DE ENTRADA (Tocar en cualquier parte) */
+function handleGlobalInput(e) {
+  if (!assetsLoaded) return; // Esperar a que carguen las texturas
+
   startMusic();
 
-  if(!gameStarted){
-    gameStarted=true;
-    if(isPC) startBar.style.display="none";
-  } else if(gameOver){
-    location.reload();
+  if (!gameStarted) {
+    resetGame();
+  } else if (gameOver) {
+    resetGame();
   } else {
     jump();
   }
 }
 
-canvas.addEventListener("touchstart", handleInput,{passive:false});
-canvas.addEventListener("click", handleInput);
-startBar.addEventListener("touchstart", handleInput,{passive:false});
-startBar.addEventListener("click", handleInput);
+// Evento unificado para pantalla/mouse en toda la ventana
+window.addEventListener("pointerdown", (e) => {
+  // Evitamos interferir si hace clic en enlaces o UI específica
+  handleGlobalInput(e);
+});
 
-window.addEventListener("keydown", e=>{
-  if(e.code==="Space"||e.code==="ArrowUp"||e.code==="Enter"){
-    handleInput(e);
+window.addEventListener("keydown", e => {
+  if (e.code === "Space" || e.code === "ArrowUp" || e.code === "Enter") {
+    e.preventDefault();
+    handleGlobalInput(e);
   }
 });
 
