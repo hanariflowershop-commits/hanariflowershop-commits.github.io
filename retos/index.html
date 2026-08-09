@@ -69,6 +69,7 @@ main {
   overflow: hidden;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 255, 255, 0.05);
   border: 2px solid rgba(255, 255, 255, 0.1);
+  background-color: #111;
 }
 
 .bg-image {
@@ -150,22 +151,31 @@ footer span {
 
 <main>
   <div class="grid-container">
-    <!-- RUTA EXACTA A TU CARPETA IMAGES -->
-    <img src="images/Icono.png" alt="Elige tu juego" class="bg-image">
+    <!-- RUTA CON MINÚSCULA Y MANEJO DE ERROR SI CASO PRUEBA CON MAYÚSCULA -->
+    <img 
+      src="images/icono.png" 
+      onerror="this.onerror=null; this.src='images/Icono.png';" 
+      alt="Elige tu juego" 
+      class="bg-image"
+    >
 
     <div class="quadrant-grid">
+      <!-- Cuadrante Rojo: Runner -->
       <a href="https://hanariec.com/runner" class="quadrant" aria-label="Jugar Panda Runner">
         <span class="label-badge">🏃 Panda Runner</span>
       </a>
 
+      <!-- Cuadrante Azul: Flappy -->
       <a href="https://hanariec.com/flappy" class="quadrant" aria-label="Jugar Panda Flappy">
         <span class="label-badge">🚀 Panda Flappy</span>
       </a>
 
+      <!-- Cuadrante Amarillo: Tank -->
       <a href="https://hanariec.com/panda-tank" class="quadrant" aria-label="Jugar Panda Tank">
         <span class="label-badge">💥 Panda Tank</span>
       </a>
 
+      <!-- Cuadrante Verde: Fulbito -->
       <a href="https://hanariec.com/fulbito" class="quadrant" aria-label="Jugar Panda Fulbito">
         <span class="label-badge">⚽ Panda Fulbito</span>
       </a>
