@@ -69,7 +69,8 @@ main {
   overflow: hidden;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 255, 255, 0.05);
   border: 2px solid rgba(255, 255, 255, 0.1);
-  background: url('images/icono.png') no-repeat center center;
+  /* Ruta con mayúscula exacta como está en tu carpeta images */
+  background: url('images/Icono.png') no-repeat center center;
   background-size: cover;
 }
 
@@ -119,7 +120,7 @@ main {
   pointer-events: none;
 }
 
-/* Efectos de borde suave individual al tocar/presionar */
+/* Esquinas redondeadas internas para las zonas de presión */
 .q-runner { border-radius: 18px 0 0 0; }
 .q-flappy { border-radius: 0 18px 0 0; }
 .q-tank   { border-radius: 0 0 0 18px; }
@@ -143,30 +144,30 @@ footer span {
 
 <header>
   <h1>ELIGE TU RETO Y GANA</h1>
-  <p class="subtitle">Selecciona el juego que mejor va con tu estilo, supera la marca de 50 puntos y reclama tu premio.</p>
+  <p class="subtitle">Selecciona tu estilo de juego, llega a 50 puntos y reclama tu premio.</p>
 </header>
 
 <main>
   <div class="grid-container">
     <div class="quadrant-grid">
       
-      <!-- Cuadrante Rojo: Runner -->
-      <a href="https://hanariec.com/runner" class="quadrant q-runner" aria-label="Jugar Panda Runner">
+      <!-- Cuadrante Rojo: Runner (arriba-izquierda) -->
+      <a href="./runner" class="quadrant q-runner" aria-label="Jugar Panda Runner">
         <span class="label-badge">🏃 Panda Runner</span>
       </a>
 
-      <!-- Cuadrante Azul: Flappy -->
-      <a href="https://hanariec.com/flappy" class="quadrant q-flappy" aria-label="Jugar Panda Flappy">
+      <!-- Cuadrante Azul: Flappy (arriba-derecha) -->
+      <a href="./flappy" class="quadrant q-flappy" aria-label="Jugar Panda Flappy">
         <span class="label-badge">🚀 Panda Flappy</span>
       </a>
 
-      <!-- Cuadrante Amarillo: Tank -->
-      <a href="https://hanariec.com/panda-tank" class="quadrant q-tank" aria-label="Jugar Panda Tank">
+      <!-- Cuadrante Amarillo: Tank (abajo-izquierda) -->
+      <a href="./panda-tank" class="quadrant q-tank" aria-label="Jugar Panda Tank">
         <span class="label-badge">💥 Panda Tank</span>
       </a>
 
-      <!-- Cuadrante Verde: Fulbito -->
-      <a href="https://hanariec.com/fulbito" class="quadrant q-fulbito" aria-label="Jugar Panda Fulbito">
+      <!-- Cuadrante Verde: Fulbito (abajo-derecha) -->
+      <a href="./fulbito" class="quadrant q-fulbito" aria-label="Jugar Panda Fulbito">
         <span class="label-badge">⚽ Panda Fulbito</span>
       </a>
 
