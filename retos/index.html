@@ -69,12 +69,21 @@ main {
   overflow: hidden;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 255, 255, 0.05);
   border: 2px solid rgba(255, 255, 255, 0.1);
-  /* Ruta con mayúscula exacta como está en tu carpeta images */
-  background: url('images/Icono.png') no-repeat center center;
-  background-size: cover;
 }
 
+/* Imagen base renderizada visiblemente */
+.bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Rejilla interactiva colocada directamente sobre la imagen */
 .quadrant-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
@@ -91,18 +100,18 @@ main {
   text-decoration: none;
   color: #fff;
   position: relative;
-  transition: transform 0.15s ease, filter 0.15s ease;
+  transition: transform 0.15s ease, background-color 0.15s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
 .quadrant:active {
   transform: scale(0.96);
-  filter: brightness(1.2);
+  background-color: rgba(255, 255, 255, 0.15);
 }
 
 @media (hover: hover) {
   .quadrant:hover {
-    filter: brightness(1.15);
+    background-color: rgba(255, 255, 255, 0.1);
   }
 }
 
@@ -119,12 +128,6 @@ main {
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
   pointer-events: none;
 }
-
-/* Esquinas redondeadas internas para las zonas de presión */
-.q-runner { border-radius: 18px 0 0 0; }
-.q-flappy { border-radius: 0 18px 0 0; }
-.q-tank   { border-radius: 0 0 0 18px; }
-.q-fulbito{ border-radius: 0 0 18px 0; }
 
 footer {
   padding: 15px;
@@ -144,30 +147,34 @@ footer span {
 
 <header>
   <h1>ELIGE TU RETO Y GANA</h1>
-  <p class="subtitle">Selecciona tu estilo de juego, llega a 50 puntos y reclama tu premio.</p>
+  <p class="subtitle">Selecciona el juego que mejor va con tu estilo, supera la marca de 50 puntos y reclama tu premio.</p>
 </header>
 
 <main>
   <div class="grid-container">
+    <!-- Etiqueta IMG directa con la ruta exacta de la carpeta images -->
+    <img src="images/Icono.png" alt="Elige tu juego" class="bg-image">
+
+    <!-- Rejilla transparente sobrepuesta para detectar los clics -->
     <div class="quadrant-grid">
       
-      <!-- Cuadrante Rojo: Runner (arriba-izquierda) -->
-      <a href="./runner" class="quadrant q-runner" aria-label="Jugar Panda Runner">
+      <!-- Cuadrante Rojo: Runner (Arriba-Izquierda) -->
+      <a href="https://hanariec.com/runner" class="quadrant" aria-label="Jugar Panda Runner">
         <span class="label-badge">🏃 Panda Runner</span>
       </a>
 
-      <!-- Cuadrante Azul: Flappy (arriba-derecha) -->
-      <a href="./flappy" class="quadrant q-flappy" aria-label="Jugar Panda Flappy">
+      <!-- Cuadrante Azul: Flappy (Arriba-Derecha) -->
+      <a href="https://hanariec.com/flappy" class="quadrant" aria-label="Jugar Panda Flappy">
         <span class="label-badge">🚀 Panda Flappy</span>
       </a>
 
-      <!-- Cuadrante Amarillo: Tank (abajo-izquierda) -->
-      <a href="./panda-tank" class="quadrant q-tank" aria-label="Jugar Panda Tank">
+      <!-- Cuadrante Amarillo: Tank (Abajo-Izquierda) -->
+      <a href="https://hanariec.com/panda-tank" class="quadrant" aria-label="Jugar Panda Tank">
         <span class="label-badge">💥 Panda Tank</span>
       </a>
 
-      <!-- Cuadrante Verde: Fulbito (abajo-derecha) -->
-      <a href="./fulbito" class="quadrant q-fulbito" aria-label="Jugar Panda Fulbito">
+      <!-- Cuadrante Verde: Fulbito (Abajo-Derecha) -->
+      <a href="https://hanariec.com/fulbito" class="quadrant" aria-label="Jugar Panda Fulbito">
         <span class="label-badge">⚽ Panda Fulbito</span>
       </a>
 
