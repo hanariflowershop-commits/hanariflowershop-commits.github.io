@@ -72,7 +72,11 @@ main {
   background-color: #111;
 }
 
+/* Posicionamiento absoluto para cubrir todo el contenedor */
 .bg-image {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -151,10 +155,10 @@ footer span {
 
 <main>
   <div class="grid-container">
-    <!-- IMAGEN DESDE LA CARPETA RETOS -->
+    <!-- RUTA DIRECTA (mismo nivel que index.html en /retos/) -->
     <img 
-      src="retos/cuadrante.jpg" 
-      onerror="this.onerror=null; this.src='retos/cuadrante.JPG';" 
+      src="cuadrante.jpg" 
+      onerror="this.onerror=null; this.src='cuadrante.JPG';" 
       alt="Elige tu juego" 
       class="bg-image"
     >
