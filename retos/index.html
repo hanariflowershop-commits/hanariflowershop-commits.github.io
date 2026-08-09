@@ -71,7 +71,6 @@ main {
   border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Imagen base renderizada visiblemente */
 .bg-image {
   width: 100%;
   height: 100%;
@@ -79,7 +78,6 @@ main {
   display: block;
 }
 
-/* Rejilla interactiva colocada directamente sobre la imagen */
 .quadrant-grid {
   position: absolute;
   top: 0;
@@ -152,32 +150,25 @@ footer span {
 
 <main>
   <div class="grid-container">
-    <!-- Etiqueta IMG directa con la ruta exacta de la carpeta images -->
+    <!-- RUTA EXACTA A TU CARPETA IMAGES -->
     <img src="images/Icono.png" alt="Elige tu juego" class="bg-image">
 
-    <!-- Rejilla transparente sobrepuesta para detectar los clics -->
     <div class="quadrant-grid">
-      
-      <!-- Cuadrante Rojo: Runner (Arriba-Izquierda) -->
       <a href="https://hanariec.com/runner" class="quadrant" aria-label="Jugar Panda Runner">
         <span class="label-badge">🏃 Panda Runner</span>
       </a>
 
-      <!-- Cuadrante Azul: Flappy (Arriba-Derecha) -->
       <a href="https://hanariec.com/flappy" class="quadrant" aria-label="Jugar Panda Flappy">
         <span class="label-badge">🚀 Panda Flappy</span>
       </a>
 
-      <!-- Cuadrante Amarillo: Tank (Abajo-Izquierda) -->
       <a href="https://hanariec.com/panda-tank" class="quadrant" aria-label="Jugar Panda Tank">
         <span class="label-badge">💥 Panda Tank</span>
       </a>
 
-      <!-- Cuadrante Verde: Fulbito (Abajo-Derecha) -->
       <a href="https://hanariec.com/fulbito" class="quadrant" aria-label="Jugar Panda Fulbito">
         <span class="label-badge">⚽ Panda Fulbito</span>
       </a>
-
     </div>
   </div>
 </main>
