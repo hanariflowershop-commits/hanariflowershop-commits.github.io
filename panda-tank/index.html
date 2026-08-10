@@ -29,7 +29,7 @@ html, body {
 #gameContainer {
   position: relative;
   width: 100vw;
-  height: 100vh;
+  flex: 1;
   overflow: hidden;
   cursor: crosshair;
 }
@@ -41,9 +41,19 @@ canvas {
   background: #111;
 }
 
+/* Franja Inferior Mantenida (Sin botones) */
+#bottomBarSpace {
+  height: 95px;
+  background: rgba(15, 15, 15, 0.95);
+  margin-bottom: max(65px, env(safe-area-inset-bottom, 65px));
+  border-top: 2px solid rgba(214, 87, 48, 0.4);
+  z-index: 20;
+  width: 100%;
+}
+
 #startBar {
   position: fixed;
-  bottom: 40px;
+  bottom: 180px;
   left: 50%;
   transform: translateX(-50%);
   width: 85%;
@@ -121,6 +131,8 @@ canvas {
   </div>
 </div>
 
+<div id="bottomBarSpace"></div>
+
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -171,6 +183,8 @@ const spriteFiles = {
   charniShoot: "charnidisparando.png",
   charniLeft: "charniquietoviendoizquierda.png",
   charniRight: "charniquietoviendoderecha.png",
+  charniBack: "charniquietoespalda.png",
+  charniWin: "charnisaludo.png",
   crosshair: "miradeltanque.png",
   flashPistol: "disparocañonpistola.png",
   spark: "destellosolo.png",
@@ -195,14 +209,14 @@ preloadAssets();
 let gameStarted = false, gameOver = false, gameWin = false, score = 0;
 let frame = 0;
 let bgScrollX = 0;
-const targetScore = 100; // Final del juego a los 100 puntos (10 enemigos)
+const targetScore = 100;
 
-/* 🐼 JUGADOR (TANQUE FIJO) */
+/* 🐼 JUGADOR (TANQUE FIJO SOBRE LA FRANJA) */
 let tank = {
   x: 0,
   y: 0,
-  w: 140,
-  h: 115,
+  w: 130,
+  h: 110,
   state: "normal",
   shootTimer: 0
 };
@@ -220,10 +234,10 @@ function resetGame() {
   frame = 0;
   bgScrollX = 0;
 
-  tank.w = 140;
-  tank.h = 115;
+  tank.w = 130;
+  tank.h = 110;
   tank.x = canvas.width / 2 - tank.w / 2;
-  tank.y = canvas.height - tank.h - 5;
+  tank.y = canvas.height - tank.h;
   tank.state = "normal";
 
   enemies = [];
@@ -238,13 +252,18 @@ function resetGame() {
   startBar.style.display = "none";
 }
 
-/* 👾 ENEMIGOS (CHARNI) */
+/* 👾 ENEMIGOS (VARIEDAD DE CHARNIS) */
 function spawnEnemy() {
   if (enemies.length >= 3 || gameWin) return;
-  const isCover = Math.random() > 0.5;
+  
+  // Tipos de sprite base aleatorios para los tiradores
+  const spriteTypes = ["charniLeft", "charniRight", "charniBack", "charniWin", "charniCover"];
+  const selectedType = spriteTypes[Math.floor(Math.random() * spriteTypes.length)];
+  const isCover = selectedType === "charniCover";
+
   const sideMargin = 50;
   const enemyX = sideMargin + Math.random() * (canvas.width - sideMargin * 2);
-  const enemyY = canvas.height * 0.38 + Math.random() * (canvas.height * 0.18);
+  const enemyY = canvas.height * 0.35 + Math.random() * (canvas.height * 0.2);
 
   enemies.push({
     x: enemyX,
@@ -252,9 +271,10 @@ function spawnEnemy() {
     w: isCover ? 70 : 55,
     h: isCover ? 65 : 75,
     isCover: isCover,
+    baseSprite: selectedType,
     hp: isCover ? 2 : 1,
     shootCooldown: Math.floor(Math.random() * 70) + 50,
-    state: isCover ? "cover" : "idle"
+    state: "idle"
   });
 }
 
@@ -280,12 +300,10 @@ function shootPlayer(targetX, targetY) {
   vibrate(15);
   tank.shootTimer = 6;
 
-  // Determinar la mirada del tanque sin moverlo
   if (targetX < tank.x) tank.state = "left";
   else if (targetX > tank.x + tank.w) tank.state = "right";
   else tank.state = "normal";
 
-  // Comprobar impacto en enemigos
   let hit = false;
   for (let i = enemies.length - 1; i >= 0; i--) {
     let e = enemies[i];
@@ -335,7 +353,6 @@ function shootPlayer(targetX, targetY) {
 function drawBackground() {
   bgScrollX = (bgScrollX + 0.8) % canvas.width;
 
-  // Fondo lejano
   if (images.bg) {
     ctx.drawImage(images.bg, 0, 0, canvas.width, canvas.height);
   } else {
@@ -343,10 +360,9 @@ function drawBackground() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  // Fondo cercano ajustado exactamente al borde inferior
   if (images.nearBg) {
-    const nearH = canvas.height * 0.22;
-    const nearY = canvas.height - nearH; // Pega la imagen al borde inferior exacto
+    const nearH = canvas.height * 0.25;
+    const nearY = canvas.height - nearH;
     ctx.drawImage(images.nearBg, -bgScrollX, nearY, canvas.width, nearH);
     ctx.drawImage(images.nearBg, canvas.width - bgScrollX, nearY, canvas.width, nearH);
   }
@@ -354,9 +370,10 @@ function drawBackground() {
 
 function drawEnemies() {
   enemies.forEach(e => {
-    let sprite = images.charniLeft;
-    if (e.isCover) sprite = images.charniCover;
-    else if (e.state === "shooting") sprite = images.charniShoot;
+    let sprite = images[e.baseSprite];
+    if (e.state === "shooting" && images.charniShoot) {
+      sprite = images.charniShoot;
+    }
 
     if (sprite) {
       ctx.drawImage(sprite, e.x, e.y, e.w, e.h);
@@ -368,8 +385,8 @@ function drawEnemies() {
 }
 
 function drawTank() {
-  tank.x = canvas.width / 2 - tank.w / 2; // Asegura que se mantenga centrado
-  tank.y = canvas.height - tank.h - 5;
+  tank.x = canvas.width / 2 - tank.w / 2;
+  tank.y = canvas.height - tank.h + 5;
 
   let sprite = images.tankNormal;
   if (tank.state === "left" && images.tankLeft) sprite = images.tankLeft;
@@ -412,10 +429,8 @@ function update() {
     if (tank.shootTimer === 0) tank.state = "normal";
   }
 
-  // Generación de Enemigos
   if (frame % 85 === 0) spawnEnemy();
 
-  // Comportamiento de Enemigos
   enemies.forEach(e => {
     e.shootCooldown--;
     if (e.shootCooldown <= 0) {
@@ -436,7 +451,7 @@ function update() {
 
       vibrate(25);
     } else if (e.shootCooldown < 80 && e.state === "shooting") {
-      e.state = e.isCover ? "cover" : "idle";
+      e.state = "idle";
     }
   });
 }
