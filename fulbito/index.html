@@ -6,6 +6,10 @@
 <title>Panda Football Juggling</title>
 
 <style>
+* {
+  box-sizing: border-box;
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -16,18 +20,63 @@ html, body {
   -webkit-touch-callout: none;
   touch-action: manipulation;
   font-family: system-ui, -apple-system, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Área de Juego */
+#gameContainer {
+  position: relative;
+  width: 100vw;
+  flex: 1; /* Ocupa el espacio superior dejando libre el panel inferior */
+  overflow: hidden;
 }
 
 canvas {
   display: block;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   background: #111;
+}
+
+/* Controles Inferiores */
+#controlsArea {
+  height: 110px;
+  background: rgba(15, 15, 15, 0.95);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px 20px;
+  border-top: 3px solid #4CAF50;
+  z-index: 20;
+}
+
+.control-btn {
+  width: 42%;
+  max-width: 180px;
+  height: 70px;
+  background: linear-gradient(145deg, #2e7d32, #1b5e20);
+  color: #ffffff;
+  border: 2px solid #a5d6a7;
+  border-radius: 16px;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 5px 12px rgba(0,0,0,0.5);
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+.control-btn:active {
+  background: #1b5e20;
+  transform: scale(0.96);
 }
 
 #startBar {
   position: fixed;
-  bottom: 20px;
+  bottom: 125px;
   left: 50%;
   transform: translateX(-50%);
   width: 85%;
@@ -37,13 +86,14 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 14px 20px;
-  font-size: 16px;
+  padding: 12px 20px;
+  font-size: 15px;
   z-index: 10;
   text-align: center;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.5);
   border: 1px solid rgba(255,255,255,0.1);
+  pointer-events: none;
 }
 
 .centered {
@@ -57,10 +107,10 @@ canvas {
   border-radius: 16px;
   width: 85%;
   max-width: 420px;
-  box-sizing: border-box;
   background: rgba(0, 0, 0, 0.92);
   backdrop-filter: blur(8px);
   border: 2px solid #4CAF50;
+  pointer-events: auto !important;
 }
 
 #scoreBox {
@@ -74,7 +124,7 @@ canvas {
   padding: 8px 16px;
   border-radius: 20px;
   backdrop-filter: blur(4px);
-  z-index: 5;
+  z-index: 25;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
@@ -89,17 +139,34 @@ canvas {
   font-weight: bold;
   color: #111;
 }
+
+/* Ocultar barra de botones si es PC */
+@media (hover: hover) and (pointer: fine) {
+  #controlsArea {
+    display: none;
+  }
+  #startBar {
+    bottom: 20px;
+  }
+}
 </style>
 </head>
 
 <body>
 
-<canvas id="gameCanvas"></canvas>
-<div id="startBar">CARGANDO RECURSOS...</div>
+<div id="gameContainer">
+  <canvas id="gameCanvas"></canvas>
+  <div id="startBar">CARGANDO RECURSOS...</div>
 
-<div id="scoreBox">
-  <img id="scoreIcon" src="../retos/Caraiconopanda.png" alt="Panda">
-  <span id="score">0</span>
+  <div id="scoreBox">
+    <img id="scoreIcon" src="../retos/Caraiconopanda.png" alt="Panda">
+    <span id="score">0</span>
+  </div>
+</div>
+
+<div id="controlsArea">
+  <div class="control-btn" id="btnLeft">◄</div>
+  <div class="control-btn" id="btnRight">►</div>
 </div>
 
 <script>
@@ -107,10 +174,11 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const scoreText = document.getElementById("score");
 const startBar = document.getElementById("startBar");
+const container = document.getElementById("gameContainer");
 
 const isPC = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
-/* 🔊 AUDIO LOCAL DESDE LA CARPETA RETOS */
+/* 🔊 AUDIO LOCAL */
 const music = new Audio("../retos/dino.mp3");
 music.loop = true;
 music.volume = 0.25;
@@ -125,10 +193,10 @@ function vibrate(pattern) {
   if (navigator.vibrate) { navigator.vibrate(pattern); }
 }
 
-/* 📐 RESIZE OPTIMIZADO */
+/* 📐 RESIZE OPTIMIZADO PARA EL CONTENEDOR */
 function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.width = container.clientWidth;
+  canvas.height = container.clientHeight;
 }
 resize();
 window.addEventListener("resize", resize);
@@ -143,7 +211,6 @@ function loadImage(path) {
   });
 }
 
-/* RUTAS DESDE LA CARPETA APARTE HACIA RETOS */
 const mobileBGPaths = [
   "../retos/fondo1.png", "../retos/fondo1denoche.png", "../retos/fondoinvierno.png",
   "../retos/fondootoño.png", "../retos/fondoprimavera.png", "../retos/fondosakuras.png"
@@ -163,23 +230,29 @@ const spritePaths = {
   dead: "../retos/muerte1.png"
 };
 
+/* IMAGEN DEL BALÓN DE FÚTBOL REAL */
+const ballImagePath = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Soccerball.svg";
+
 let backgrounds = [];
 let sprites = {};
+let ballImg = null;
 let assetsLoaded = false;
 
 async function preloadAssets() {
   const bgPaths = isPC ? pcBGPaths : mobileBGPaths;
   
-  const [loadedBGs, loadedSpriteEntries] = await Promise.all([
+  const [loadedBGs, loadedSpriteEntries, loadedBall] = await Promise.all([
     Promise.all(bgPaths.map(loadImage)),
-    Promise.all(Object.entries(spritePaths).map(async ([key, path]) => [key, await loadImage(path)]))
+    Promise.all(Object.entries(spritePaths).map(async ([key, path]) => [key, await loadImage(path)])),
+    loadImage(ballImagePath)
   ]);
 
   backgrounds = loadedBGs;
   sprites = Object.fromEntries(loadedSpriteEntries);
+  ballImg = loadedBall;
 
   assetsLoaded = true;
-  startBar.innerText = isPC ? "USA LAS FLECHAS / A-D PARA MOVERTE" : "TOCA LA IZQUIERDA O DERECHA PARA MOVERTE";
+  startBar.innerText = isPC ? "USA LAS FLECHAS / A-D PARA MOVERTE" : "USA LAS FLECHAS ABAJO O TOCA LA PANTALLA";
 }
 preloadAssets();
 
@@ -194,19 +267,19 @@ let panda = {
   w: 100,
   h: 100,
   vx: 0,
-  speed: 7,
+  speed: 8,
   jumpAnimTimer: 0,
   facingLeft: false
 };
 
-/* ⚽ OBJETO BALÓN */
+/* ⚽ OBJETO BALÓN (Con física ajustada para elevarse más alto) */
 let ball = {
   x: 0,
   y: 0,
-  radius: 20,
+  radius: 24,
   vx: 0,
   vy: 0,
-  gravity: 0.35,
+  gravity: 0.42,
   rotation: 0
 };
 
@@ -223,13 +296,13 @@ function resetGame() {
   panda.w = 100;
   panda.h = 100;
   panda.x = canvas.width / 2 - panda.w / 2;
-  panda.y = canvas.height - panda.h - 30;
+  panda.y = canvas.height - panda.h - 10;
   panda.jumpAnimTimer = 0;
 
   ball.x = canvas.width / 2;
   ball.y = canvas.height / 3;
   ball.vx = (Math.random() - 0.5) * 4;
-  ball.vy = -2;
+  ball.vy = -3;
 
   scoreText.innerText = "0";
 
@@ -307,24 +380,14 @@ function drawBall() {
   ctx.translate(ball.x, ball.y);
   ctx.rotate(ball.rotation);
 
-  // Dibujo vectorial de balón de fútbol
-  ctx.beginPath();
-  ctx.arc(0, 0, ball.radius, 0, Math.PI * 2);
-  ctx.fillStyle = "#ffffff";
-  ctx.fill();
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = "#000000";
-  ctx.stroke();
-
-  // Detalle del balón (parches negros)
-  ctx.fillStyle = "#000000";
-  for (let i = 0; i < 5; i++) {
-    const angle = (i * Math.PI * 2) / 5;
-    const px = Math.cos(angle) * (ball.radius * 0.5);
-    const py = Math.sin(angle) * (ball.radius * 0.5);
+  if (ballImg && ballImg.complete && ballImg.naturalWidth > 0) {
+    ctx.drawImage(ballImg, -ball.radius, -ball.radius, ball.radius * 2, ball.radius * 2);
+  } else {
     ctx.beginPath();
-    ctx.arc(px, py, ball.radius * 0.25, 0, Math.PI * 2);
+    ctx.arc(0, 0, ball.radius, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffffff";
     ctx.fill();
+    ctx.stroke();
   }
 
   ctx.restore();
@@ -335,7 +398,6 @@ function update() {
 
   frame++;
 
-  /* Victoria al llegar a 50 dominadas */
   if (score >= 50 && !gameWin) {
     gameWin = true;
     showVictory();
@@ -351,7 +413,7 @@ function update() {
     panda.facingLeft = false;
   }
 
-  /* Limites de pantalla para el Panda */
+  /* Limites de pantalla */
   if (panda.x < 0) panda.x = 0;
   if (panda.x + panda.w > canvas.width) panda.x = canvas.width - panda.w;
 
@@ -361,9 +423,9 @@ function update() {
   ball.vy += ball.gravity;
   ball.x += ball.vx;
   ball.y += ball.vy;
-  ball.rotation += ball.vx * 0.05;
+  ball.rotation += ball.vx * 0.04;
 
-  /* Rebote en paredes laterales */
+  /* Rebote lateral */
   if (ball.x - ball.radius < 0) {
     ball.x = ball.radius;
     ball.vx *= -0.8;
@@ -373,8 +435,8 @@ function update() {
     ball.vx *= -0.8;
   }
 
-  /* Colisión Balón con Panda */
-  const hitBoxPadding = 15;
+  /* Colisión con Panda */
+  const hitBoxPadding = 12;
   const px = panda.x + hitBoxPadding;
   const py = panda.y + hitBoxPadding;
   const pw = panda.w - hitBoxPadding * 2;
@@ -387,13 +449,13 @@ function update() {
     ball.y - ball.radius < py + ph &&
     ball.vy > 0
   ) {
-    ball.vy = -10.5 - Math.min(score * 0.1, 3); // Aumenta levemente la fuerza
+    // Impulso vertical aumentado (-15.5) para alcanzar la marca alta
+    ball.vy = -15.5 - Math.min(score * 0.1, 2);
     
-    // El impacto cambia el ángulo horizontal según dónde le pegue
     const hitPoint = (ball.x - (panda.x + panda.w / 2)) / (panda.w / 2);
-    ball.vx = hitPoint * 7;
+    ball.vx = hitPoint * 7.5;
 
-    panda.jumpAnimTimer = 20; // Dispara sprite midAir/fall
+    panda.jumpAnimTimer = 20;
     vibrate(15);
 
     if (!gameWin) {
@@ -402,8 +464,8 @@ function update() {
     }
   }
 
-  /* Derrota: El balón toca el piso */
-  if (ball.y + ball.radius >= canvas.height - 10) {
+  /* Derrota si el balón cae */
+  if (ball.y + ball.radius >= canvas.height - 5) {
     triggerGameOver();
   }
 }
@@ -454,11 +516,41 @@ function handleInputEnd() {
   keys.right = false;
 }
 
-/* CONTROLES TÁCTILES */
-window.addEventListener("pointerdown", (e) => handleInputStart(e.clientX));
-window.addEventListener("pointerup", handleInputEnd);
+/* EVENTOS EN PANTALLA DE JUEGO */
+container.addEventListener("pointerdown", (e) => handleInputStart(e.clientX));
+container.addEventListener("pointerup", handleInputEnd);
 
-/* CONTROLES TECLADO (PC) */
+/* EVENTOS EN BOTONES DIRECCIONALES */
+const btnLeft = document.getElementById("btnLeft");
+const btnRight = document.getElementById("btnRight");
+
+btnLeft.addEventListener("pointerdown", (e) => {
+  e.stopPropagation();
+  if (!assetsLoaded) return;
+  if (!gameStarted || gameOver) { resetGame(); return; }
+  playMusic();
+  keys.left = true;
+});
+
+btnLeft.addEventListener("pointerup", (e) => {
+  e.stopPropagation();
+  keys.left = false;
+});
+
+btnRight.addEventListener("pointerdown", (e) => {
+  e.stopPropagation();
+  if (!assetsLoaded) return;
+  if (!gameStarted || gameOver) { resetGame(); return; }
+  playMusic();
+  keys.right = true;
+});
+
+btnRight.addEventListener("pointerup", (e) => {
+  e.stopPropagation();
+  keys.right = false;
+});
+
+/* TECLADO PC */
 window.addEventListener("keydown", (e) => {
   if (!assetsLoaded) return;
   if (!gameStarted || gameOver) {
