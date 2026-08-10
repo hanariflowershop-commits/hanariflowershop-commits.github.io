@@ -182,7 +182,7 @@ const container = document.getElementById("gameContainer");
 const isPC = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
 /* 🔊 AUDIO LOCAL */
-const music = new Audio("../retos/dino.mp3");
+const music = new Audio("../retos/fulbo.mp3");
 music.loop = true;
 music.volume = 0.25;
 music.setAttribute("playsinline", "");
@@ -214,15 +214,7 @@ function loadImage(path) {
   });
 }
 
-const mobileBGPaths = [
-  "../retos/fondo1.png", "../retos/fondo1denoche.png", "../retos/fondoinvierno.png",
-  "../retos/fondootoño.png", "../retos/fondoprimavera.png", "../retos/fondosakuras.png"
-];
-
-const pcBGPaths = [
-  "../retos/fondo1horizontal.png", "../retos/fondo1denochehorizontal.png", "../retos/fondoinviernohorizontal.png",
-  "../retos/fondootoñohorizontal.png", "../retos/fondosakurashorizontal.png"
-];
+const bgPath = "../retos/fulbo.png";
 
 const spritePaths = {
   run1: "../retos/corriendo1.png",
@@ -235,21 +227,19 @@ const spritePaths = {
 
 const ballImagePath = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Soccerball.svg";
 
-let backgrounds = [];
+let background = null;
 let sprites = {};
 let ballImg = null;
 let assetsLoaded = false;
 
 async function preloadAssets() {
-  const bgPaths = isPC ? pcBGPaths : mobileBGPaths;
-  
-  const [loadedBGs, loadedSpriteEntries, loadedBall] = await Promise.all([
-    Promise.all(bgPaths.map(loadImage)),
+  const [loadedBG, loadedSpriteEntries, loadedBall] = await Promise.all([
+    loadImage(bgPath),
     Promise.all(Object.entries(spritePaths).map(async ([key, path]) => [key, await loadImage(path)])),
     loadImage(ballImagePath)
   ]);
 
-  backgrounds = loadedBGs;
+  background = loadedBG;
   sprites = Object.fromEntries(loadedSpriteEntries);
   ballImg = loadedBall;
 
@@ -316,20 +306,14 @@ function resetGame() {
   startBar.style.display = "none";
 }
 
-function getBGIndex() {
-  if (score >= 50) return backgrounds.length - 1;
-  return Math.floor(score / 10) % backgrounds.length;
-}
-
 function drawBG() {
-  const bg = backgrounds[getBGIndex()];
-  if (bg && bg.complete && bg.naturalWidth > 0) {
-    const scale = Math.max(canvas.width / bg.width, canvas.height / bg.height);
-    ctx.drawImage(bg,
-      (canvas.width - bg.width * scale) / 2,
-      (canvas.height - bg.height * scale) / 2,
-      bg.width * scale,
-      bg.height * scale
+  if (background && background.complete && background.naturalWidth > 0) {
+    const scale = Math.max(canvas.width / background.width, canvas.height / background.height);
+    ctx.drawImage(background,
+      (canvas.width - background.width * scale) / 2,
+      (canvas.height - background.height * scale) / 2,
+      background.width * scale,
+      background.height * scale
     );
   } else {
     ctx.fillStyle = "#1a1a1a";
