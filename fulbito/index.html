@@ -71,6 +71,8 @@ canvas {
   cursor: pointer;
   opacity: 0.35; /* 35% de transparencia */
   transition: opacity 0.1s ease;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .control-btn:active {
@@ -181,10 +183,10 @@ const container = document.getElementById("gameContainer");
 
 const isPC = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
-/* 🔊 AUDIO LOCAL */
+/* 🔊 AUDIO LOCAL CON VOLUMEN MÁS ALTO */
 const music = new Audio("../retos/fulbo.mp3");
 music.loop = true;
-music.volume = 0.25;
+music.volume = 0.85; /* Se subió el volumen de 0.25 a 0.85 */
 music.setAttribute("playsinline", "");
 
 function playMusic() {
@@ -301,7 +303,6 @@ function resetGame() {
   music.currentTime = 0;
   playMusic();
 
-  /* Ocultamos completamente el mensaje al comenzar la partida */
   startBar.classList.remove("centered");
   startBar.style.display = "none";
 }
@@ -509,15 +510,18 @@ function handleInputEnd() {
   keys.right = false;
 }
 
-/* EVENTOS DE CONTROLES */
+/* EVENTOS DE CONTROLES EN PANTALLA */
 container.addEventListener("pointerdown", (e) => handleInputStart(e.clientX));
 container.addEventListener("pointerup", handleInputEnd);
 
 const btnLeft = document.getElementById("btnLeft");
 const btnRight = document.getElementById("btnRight");
 
+/* Eventos optimizados para evitar bloqueos y selecciones de texto */
 btnLeft.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
   e.stopPropagation();
+  if (e.pointerId && btnLeft.setPointerCapture) btnLeft.setPointerCapture(e.pointerId);
   if (!assetsLoaded) return;
   if (!gameStarted || gameOver) { resetGame(); return; }
   playMusic();
@@ -525,12 +529,18 @@ btnLeft.addEventListener("pointerdown", (e) => {
 });
 
 btnLeft.addEventListener("pointerup", (e) => {
+  e.preventDefault();
   e.stopPropagation();
   keys.left = false;
 });
 
+btnLeft.addEventListener("pointercancel", () => { keys.left = false; });
+btnLeft.addEventListener("pointerleave", () => { keys.left = false; });
+
 btnRight.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
   e.stopPropagation();
+  if (e.pointerId && btnRight.setPointerCapture) btnRight.setPointerCapture(e.pointerId);
   if (!assetsLoaded) return;
   if (!gameStarted || gameOver) { resetGame(); return; }
   playMusic();
@@ -538,9 +548,13 @@ btnRight.addEventListener("pointerdown", (e) => {
 });
 
 btnRight.addEventListener("pointerup", (e) => {
+  e.preventDefault();
   e.stopPropagation();
   keys.right = false;
 });
+
+btnRight.addEventListener("pointercancel", () => { keys.right = false; });
+btnRight.addEventListener("pointerleave", () => { keys.right = false; });
 
 /* TECLADO PC */
 window.addEventListener("keydown", (e) => {
