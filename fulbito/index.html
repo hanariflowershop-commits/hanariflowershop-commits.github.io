@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Panda Football Juggling</title>
 
 <style>
@@ -29,7 +29,7 @@ html, body {
 #gameContainer {
   position: relative;
   width: 100vw;
-  flex: 1; /* Ocupa el espacio superior dejando libre el panel inferior */
+  flex: 1;
   overflow: hidden;
 }
 
@@ -40,14 +40,17 @@ canvas {
   background: #111;
 }
 
-/* Controles Inferiores */
+/* Controles Inferiores con resguardo para la barra de navegación de Android */
 #controlsArea {
-  height: 110px;
+  height: auto;
+  min-height: 100px;
   background: rgba(15, 15, 15, 0.95);
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 10px 20px;
+  padding: 12px 20px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom, 24px));
+  margin-bottom: 20px; /* Eleva los botones por encima de los controles de Android */
   border-top: 3px solid #4CAF50;
   z-index: 20;
 }
@@ -55,7 +58,7 @@ canvas {
 .control-btn {
   width: 42%;
   max-width: 180px;
-  height: 70px;
+  height: 65px;
   background: linear-gradient(145deg, #2e7d32, #1b5e20);
   color: #ffffff;
   border: 2px solid #a5d6a7;
@@ -76,7 +79,7 @@ canvas {
 
 #startBar {
   position: fixed;
-  bottom: 125px;
+  bottom: 145px;
   left: 50%;
   transform: translateX(-50%);
   width: 85%;
@@ -140,7 +143,6 @@ canvas {
   color: #111;
 }
 
-/* Ocultar barra de botones si es PC */
 @media (hover: hover) and (pointer: fine) {
   #controlsArea {
     display: none;
@@ -193,7 +195,7 @@ function vibrate(pattern) {
   if (navigator.vibrate) { navigator.vibrate(pattern); }
 }
 
-/* 📐 RESIZE OPTIMIZADO PARA EL CONTENEDOR */
+/* 📐 RESIZE OPTIMIZADO */
 function resize() {
   canvas.width = container.clientWidth;
   canvas.height = container.clientHeight;
@@ -201,7 +203,7 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
-/* 🖼️ PRECARGADOR DE IMÁGENES CON PROMESAS */
+/* 🖼️ PRECARGADOR DE IMÁGENES */
 function loadImage(path) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -230,7 +232,6 @@ const spritePaths = {
   dead: "../retos/muerte1.png"
 };
 
-/* IMAGEN DEL BALÓN DE FÚTBOL REAL */
 const ballImagePath = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Soccerball.svg";
 
 let backgrounds = [];
@@ -272,7 +273,7 @@ let panda = {
   facingLeft: false
 };
 
-/* ⚽ OBJETO BALÓN (Con física ajustada para elevarse más alto) */
+/* ⚽ OBJETO BALÓN */
 let ball = {
   x: 0,
   y: 0,
@@ -350,27 +351,37 @@ function showVictory() {
 
 function drawPanda() {
   let img = sprites.idle;
+  let renderWidth = panda.w;
+  let renderHeight = panda.h;
 
   if (gameOver) {
     img = sprites.dead;
   } else if (panda.jumpAnimTimer > 0) {
     img = panda.jumpAnimTimer > 10 ? sprites.midAir : sprites.fall;
+    /* Aumentamos el tamaño de la animación del salto/golpe a 135% */
+    renderWidth = panda.w * 1.35;
+    renderHeight = panda.h * 1.35;
   } else if (keys.left || keys.right) {
     img = Math.floor(frame / 8) % 2 === 0 ? sprites.run1 : sprites.run2;
   }
 
   ctx.save();
-  ctx.translate(panda.x + panda.w / 2, panda.y + panda.h / 2);
+
+  /* Mantenemos la base alineada independientemente del tamaño */
+  const drawX = panda.x + panda.w / 2;
+  const drawY = (panda.y + panda.h) - renderHeight / 2;
+
+  ctx.translate(drawX, drawY);
 
   if (panda.facingLeft) {
     ctx.scale(-1, 1);
   }
 
   if (img && img.complete && img.naturalWidth > 0) {
-    ctx.drawImage(img, -panda.w / 2, -panda.h / 2, panda.w, panda.h);
+    ctx.drawImage(img, -renderWidth / 2, -renderHeight / 2, renderWidth, renderHeight);
   } else {
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(-panda.w / 2, -panda.h / 2, panda.w, panda.h);
+    ctx.fillRect(-renderWidth / 2, -renderHeight / 2, renderWidth, renderHeight);
   }
   ctx.restore();
 }
@@ -413,7 +424,7 @@ function update() {
     panda.facingLeft = false;
   }
 
-  /* Limites de pantalla */
+  /* Límites de pantalla */
   if (panda.x < 0) panda.x = 0;
   if (panda.x + panda.w > canvas.width) panda.x = canvas.width - panda.w;
 
@@ -449,13 +460,12 @@ function update() {
     ball.y - ball.radius < py + ph &&
     ball.vy > 0
   ) {
-    // Impulso vertical aumentado (-15.5) para alcanzar la marca alta
     ball.vy = -15.5 - Math.min(score * 0.1, 2);
     
     const hitPoint = (ball.x - (panda.x + panda.w / 2)) / (panda.w / 2);
     ball.vx = hitPoint * 7.5;
 
-    panda.jumpAnimTimer = 20;
+    panda.jumpAnimTimer = 22; // Duración de la animación de salto
     vibrate(15);
 
     if (!gameWin) {
@@ -464,7 +474,7 @@ function update() {
     }
   }
 
-  /* Derrota si el balón cae */
+  /* Derrota */
   if (ball.y + ball.radius >= canvas.height - 5) {
     triggerGameOver();
   }
@@ -516,11 +526,10 @@ function handleInputEnd() {
   keys.right = false;
 }
 
-/* EVENTOS EN PANTALLA DE JUEGO */
+/* EVENTOS DE CONTROLES */
 container.addEventListener("pointerdown", (e) => handleInputStart(e.clientX));
 container.addEventListener("pointerup", handleInputEnd);
 
-/* EVENTOS EN BOTONES DIRECCIONALES */
 const btnLeft = document.getElementById("btnLeft");
 const btnRight = document.getElementById("btnRight");
 
