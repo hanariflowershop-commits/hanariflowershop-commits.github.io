@@ -29,7 +29,7 @@ html, body {
 #gameContainer {
   position: relative;
   width: 100vw;
-  flex: 1;
+  height: 100vh;
   overflow: hidden;
   cursor: crosshair;
 }
@@ -41,47 +41,9 @@ canvas {
   background: #111;
 }
 
-/* Controles Inferiores elevados con 35% de transparencia */
-#controlsArea {
-  height: auto;
-  min-height: 95px;
-  background: rgba(15, 15, 15, 0.4);
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: 10px 20px;
-  margin-bottom: max(65px, env(safe-area-inset-bottom, 65px));
-  border-top: 2px solid rgba(214, 87, 48, 0.4);
-  z-index: 20;
-}
-
-.control-btn {
-  width: 42%;
-  max-width: 180px;
-  height: 60px;
-  background: rgba(214, 87, 48, 0.35);
-  color: rgba(255, 255, 255, 0.85);
-  border: 2px solid rgba(242, 147, 119, 0.4);
-  border-radius: 16px;
-  font-size: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  touch-action: manipulation;
-  cursor: pointer;
-  opacity: 0.35;
-  transition: opacity 0.1s ease;
-}
-
-.control-btn:active {
-  opacity: 0.7;
-  transform: scale(0.96);
-}
-
 #startBar {
   position: fixed;
-  bottom: 190px;
+  bottom: 40px;
   left: 50%;
   transform: translateX(-50%);
   width: 85%;
@@ -144,15 +106,6 @@ canvas {
   font-weight: bold;
   color: #111;
 }
-
-@media (hover: hover) and (pointer: fine) {
-  #controlsArea {
-    display: none;
-  }
-  #startBar {
-    bottom: 20px;
-  }
-}
 </style>
 </head>
 
@@ -166,11 +119,6 @@ canvas {
     <img id="scoreIcon" src="../retos/Caraiconopanda.png" alt="Panda">
     <span id="score">0</span>
   </div>
-</div>
-
-<div id="controlsArea">
-  <div class="control-btn" id="btnLeft">◄</div>
-  <div class="control-btn" id="btnRight">►</div>
 </div>
 
 <script>
@@ -223,18 +171,12 @@ const spriteFiles = {
   charniShoot: "charnidisparando.png",
   charniLeft: "charniquietoviendoizquierda.png",
   charniRight: "charniquietoviendoderecha.png",
-  charniBack: "charniquietoespalda.png",
-  charniWin: "charnisaludo.png",
   crosshair: "miradeltanque.png",
-  flashTank: "disparocañontanque.png",
   flashPistol: "disparocañonpistola.png",
   spark: "destellosolo.png",
-  impactPistol: "impactodebalapistola.png",
   impactTank: "impactodebalapistolaeneltanque.png",
   impactGround: "impactoensuelo.png",
-  explosionSmall: "explosionpequeña.png",
-  explosionBig: "explosionconescombros.png",
-  smoke: "nubedehumo.png"
+  explosionBig: "explosionconescombros.png"
 };
 
 let images = {};
@@ -245,7 +187,7 @@ async function preloadAssets() {
   const loaded = await Promise.all(entries.map(async ([key, path]) => [key, await loadImage(path)]));
   images = Object.fromEntries(loaded);
   assetsLoaded = true;
-  startBar.innerText = isPC ? "CLICK PARA APUNTAR Y DISPARAR | A-D PARA MOVERTE" : "TOCA EN LA PANTALLA PARA JUGAR Y DISPARAR";
+  startBar.innerText = isPC ? "CLICK EN LOS ENEMIGOS PARA DISPARAR" : "TOCA EN LOS OBJETIVOS PARA DISPARAR";
 }
 preloadAssets();
 
@@ -253,15 +195,15 @@ preloadAssets();
 let gameStarted = false, gameOver = false, gameWin = false, score = 0;
 let frame = 0;
 let bgScrollX = 0;
+const targetScore = 100; // Final del juego a los 100 puntos (10 enemigos)
 
-/* 🐼 JUGADOR (TANQUE) */
+/* 🐼 JUGADOR (TANQUE FIJO) */
 let tank = {
   x: 0,
   y: 0,
-  w: 120,
-  h: 100,
-  speed: 7,
-  state: "normal", // "normal", "left", "right"
+  w: 140,
+  h: 115,
+  state: "normal",
   shootTimer: 0
 };
 
@@ -269,10 +211,6 @@ let tank = {
 let crosshair = { x: -100, y: -100, active: false };
 let effects = [];
 let enemies = [];
-let enemyBullets = [];
-
-/* 🕹️ CONTROLES */
-let keys = { left: false, right: false };
 
 function resetGame() {
   gameStarted = true;
@@ -282,14 +220,13 @@ function resetGame() {
   frame = 0;
   bgScrollX = 0;
 
-  tank.w = 130;
-  tank.h = 110;
+  tank.w = 140;
+  tank.h = 115;
   tank.x = canvas.width / 2 - tank.w / 2;
-  tank.y = canvas.height - tank.h - 10;
+  tank.y = canvas.height - tank.h - 5;
   tank.state = "normal";
 
   enemies = [];
-  enemyBullets = [];
   effects = [];
 
   scoreText.innerText = "0";
@@ -303,11 +240,11 @@ function resetGame() {
 
 /* 👾 ENEMIGOS (CHARNI) */
 function spawnEnemy() {
-  if (enemies.length >= 3) return;
+  if (enemies.length >= 3 || gameWin) return;
   const isCover = Math.random() > 0.5;
-  const sideMargin = 60;
+  const sideMargin = 50;
   const enemyX = sideMargin + Math.random() * (canvas.width - sideMargin * 2);
-  const enemyY = canvas.height * 0.35 + Math.random() * (canvas.height * 0.2);
+  const enemyY = canvas.height * 0.38 + Math.random() * (canvas.height * 0.18);
 
   enemies.push({
     x: enemyX,
@@ -316,29 +253,37 @@ function spawnEnemy() {
     h: isCover ? 65 : 75,
     isCover: isCover,
     hp: isCover ? 2 : 1,
-    shootCooldown: Math.floor(Math.random() * 80) + 60,
+    shootCooldown: Math.floor(Math.random() * 70) + 50,
     state: isCover ? "cover" : "idle"
   });
 }
 
+function showVictory() {
+  gameWin = true;
+  music.pause();
+  vibrate([100, 50, 100, 50, 200]);
+  const code = "TK" + Math.floor(Math.random() * 90000 + 10000);
+  startBar.classList.add("centered");
+  startBar.style.display = "flex";
+  startBar.innerHTML = `
+    🏆 ¡MISIÓN CUMPLIDA!<br>
+    Has despejado el área con el tanque<br><br>
+    🎁 Ganaste un Hana Café<br>
+    🎟 Código: <b>${code}</b><br>
+    <small>Toca para volver a jugar</small>
+  `;
+}
+
 function shootPlayer(targetX, targetY) {
-  if (!gameStarted || gameOver) return;
+  if (!gameStarted || gameOver || gameWin) return;
 
-  vibrate(20);
-  tank.shootTimer = 8;
+  vibrate(15);
+  tank.shootTimer = 6;
 
-  // Determinar dirección del cañón
+  // Determinar la mirada del tanque sin moverlo
   if (targetX < tank.x) tank.state = "left";
   else if (targetX > tank.x + tank.w) tank.state = "right";
   else tank.state = "normal";
-
-  // Efecto de fogonazo en tanque
-  effects.push({
-    type: "flashTank",
-    x: tank.x + tank.w / 2 - 25,
-    y: tank.y - 20,
-    w: 50, h: 50, life: 5
-  });
 
   // Comprobar impacto en enemigos
   let hit = false;
@@ -363,11 +308,15 @@ function shootPlayer(targetX, targetY) {
         effects.push({
           type: "explosionBig",
           x: e.x - 10, y: e.y - 10,
-          w: e.w + 20, h: e.h + 20, life: 15
+          w: e.w + 20, h: e.h + 20, life: 14
         });
         enemies.splice(i, 1);
         score += 10;
         scoreText.innerText = score;
+
+        if (score >= targetScore) {
+          showVictory();
+        }
       }
       break;
     }
@@ -377,14 +326,14 @@ function shootPlayer(targetX, targetY) {
     effects.push({
       type: "impactGround",
       x: targetX - 15, y: targetY - 15,
-      w: 30, h: 30, life: 10
+      w: 30, h: 30, life: 8
     });
   }
 }
 
 /* 🎨 RENDERIZADO */
 function drawBackground() {
-  bgScrollX = (bgScrollX + 1) % canvas.width;
+  bgScrollX = (bgScrollX + 0.8) % canvas.width;
 
   // Fondo lejano
   if (images.bg) {
@@ -394,10 +343,10 @@ function drawBackground() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  // Fondo cercano (Near Background con movimiento)
+  // Fondo cercano ajustado exactamente al borde inferior
   if (images.nearBg) {
-    const nearH = canvas.height * 0.25;
-    const nearY = canvas.height - nearH - 40;
+    const nearH = canvas.height * 0.22;
+    const nearY = canvas.height - nearH; // Pega la imagen al borde inferior exacto
     ctx.drawImage(images.nearBg, -bgScrollX, nearY, canvas.width, nearH);
     ctx.drawImage(images.nearBg, canvas.width - bgScrollX, nearY, canvas.width, nearH);
   }
@@ -419,6 +368,9 @@ function drawEnemies() {
 }
 
 function drawTank() {
+  tank.x = canvas.width / 2 - tank.w / 2; // Asegura que se mantenga centrado
+  tank.y = canvas.height - tank.h - 5;
+
   let sprite = images.tankNormal;
   if (tank.state === "left" && images.tankLeft) sprite = images.tankLeft;
   if (tank.state === "right" && images.tankRight) sprite = images.tankRight;
@@ -451,16 +403,9 @@ function drawCrosshair() {
 
 /* 🔄 UPDATE */
 function update() {
-  if (!gameStarted || gameOver) return;
+  if (!gameStarted || gameOver || gameWin) return;
 
   frame++;
-
-  // Movimiento del Tanque
-  if (keys.left) tank.x -= tank.speed;
-  if (keys.right) tank.x += tank.speed;
-
-  if (tank.x < 0) tank.x = 0;
-  if (tank.x + tank.w > canvas.width) tank.x = canvas.width - tank.w;
 
   if (tank.shootTimer > 0) {
     tank.shootTimer--;
@@ -468,42 +413,32 @@ function update() {
   }
 
   // Generación de Enemigos
-  if (frame % 90 === 0) spawnEnemy();
+  if (frame % 85 === 0) spawnEnemy();
 
-  // Comportamiento de Enemigos y Disparos
+  // Comportamiento de Enemigos
   enemies.forEach(e => {
     e.shootCooldown--;
     if (e.shootCooldown <= 0) {
       e.state = "shooting";
-      e.shootCooldown = 110 + Math.random() * 60;
+      e.shootCooldown = 100 + Math.random() * 50;
 
-      // Disparo del enemigo al jugador
       effects.push({
         type: "flashPistol",
-        x: e.x, y: e.y, w: 30, h: 30, life: 6
+        x: e.x, y: e.y, w: 25, h: 25, life: 5
       });
 
-      // Impacto en el tanque
       effects.push({
         type: "impactTank",
         x: tank.x + Math.random() * (tank.w - 30),
-        y: tank.y + 10,
-        w: 35, h: 35, life: 10
+        y: tank.y + 20,
+        w: 30, h: 30, life: 8
       });
 
-      vibrate([40, 20, 40]);
-    } else if (e.shootCooldown < 90 && e.state === "shooting") {
+      vibrate(25);
+    } else if (e.shootCooldown < 80 && e.state === "shooting") {
       e.state = e.isCover ? "cover" : "idle";
     }
   });
-}
-
-function triggerGameOver() {
-  gameOver = true;
-  music.pause();
-  vibrate([100, 50, 100]);
-  startBar.innerText = "¡MISION FALLIDA! TOCAR PARA REINICIAR";
-  startBar.style.display = "flex";
 }
 
 function draw() {
@@ -521,11 +456,11 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
-/* 🖱️ EVENTOS Y CONTROLES */
+/* 🖱️ CONTROLES TÁCTILES Y MOUSE */
 function handlePointerDown(e) {
   if (!assetsLoaded) return;
 
-  if (!gameStarted || gameOver) {
+  if (!gameStarted || gameOver || gameWin) {
     resetGame();
     return;
   }
@@ -546,7 +481,7 @@ function handlePointerDown(e) {
 container.addEventListener("pointerdown", handlePointerDown);
 
 container.addEventListener("pointermove", (e) => {
-  if (gameStarted && !gameOver) {
+  if (gameStarted && !gameOver && !gameWin) {
     const rect = canvas.getBoundingClientRect();
     crosshair.x = e.clientX - rect.left;
     crosshair.y = e.clientY - rect.top;
@@ -554,51 +489,12 @@ container.addEventListener("pointermove", (e) => {
   }
 });
 
-/* BOTONES INFERIORES */
-const btnLeft = document.getElementById("btnLeft");
-const btnRight = document.getElementById("btnRight");
-
-btnLeft.addEventListener("pointerdown", (e) => {
-  e.stopPropagation();
-  if (!assetsLoaded) return;
-  if (!gameStarted || gameOver) { resetGame(); return; }
-  playMusic();
-  keys.left = true;
-});
-
-btnLeft.addEventListener("pointerup", (e) => {
-  e.stopPropagation();
-  keys.left = false;
-});
-
-btnRight.addEventListener("pointerdown", (e) => {
-  e.stopPropagation();
-  if (!assetsLoaded) return;
-  if (!gameStarted || gameOver) { resetGame(); return; }
-  playMusic();
-  keys.right = true;
-});
-
-btnRight.addEventListener("pointerup", (e) => {
-  e.stopPropagation();
-  keys.right = false;
-});
-
-/* TECLADO PC */
+/* TECLADO PC PARA REINICIAR */
 window.addEventListener("keydown", (e) => {
   if (!assetsLoaded) return;
-  if (!gameStarted || gameOver) {
+  if (!gameStarted || gameOver || gameWin) {
     if (e.code === "Space" || e.code === "Enter") resetGame();
-    return;
   }
-  playMusic();
-  if (e.code === "ArrowLeft" || e.code === "KeyA") keys.left = true;
-  if (e.code === "ArrowRight" || e.code === "KeyD") keys.right = true;
-});
-
-window.addEventListener("keyup", (e) => {
-  if (e.code === "ArrowLeft" || e.code === "KeyA") keys.left = false;
-  if (e.code === "ArrowRight" || e.code === "KeyD") keys.right = false;
 });
 
 requestAnimationFrame(loop);
