@@ -40,18 +40,17 @@ canvas {
   background: #111;
 }
 
-/* Controles Inferiores elevados para despejar la barra de Android */
+/* Controles Inferiores elevados con 35% de transparencia */
 #controlsArea {
   height: auto;
   min-height: 95px;
-  background: rgba(15, 15, 15, 0.95);
+  background: rgba(15, 15, 15, 0.4);
   display: flex;
   justify-content: space-around;
   align-items: center;
   padding: 10px 20px;
-  /* Margen inferior amplio para evitar superposición con Android */
   margin-bottom: max(65px, env(safe-area-inset-bottom, 65px));
-  border-top: 3px solid #D65730;
+  border-top: 2px solid rgba(214, 87, 48, 0.4);
   z-index: 20;
 }
 
@@ -59,21 +58,23 @@ canvas {
   width: 42%;
   max-width: 180px;
   height: 60px;
-  background: linear-gradient(145deg, #D65730, #a83d1d);
-  color: #ffffff;
-  border: 2px solid #f29377;
+  background: rgba(214, 87, 48, 0.35);
+  color: rgba(255, 255, 255, 0.85);
+  border: 2px solid rgba(242, 147, 119, 0.4);
   border-radius: 16px;
   font-size: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 5px 12px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
   touch-action: manipulation;
   cursor: pointer;
+  opacity: 0.35; /* 35% de transparencia */
+  transition: opacity 0.1s ease;
 }
 
 .control-btn:active {
-  background: #a83d1d;
+  opacity: 0.7;
   transform: scale(0.96);
 }
 
@@ -253,7 +254,7 @@ async function preloadAssets() {
   ballImg = loadedBall;
 
   assetsLoaded = true;
-  startBar.innerText = isPC ? "USA LAS FLECHAS / A-D PARA MOVERTE" : "USA LAS FLECHAS ABAJO O TOCA LA PANTALLA";
+  startBar.innerText = isPC ? "PRESIONA PARA EMPEZAR" : "TOCA PARA EMPEZAR A JUGAR";
 }
 preloadAssets();
 
@@ -310,9 +311,9 @@ function resetGame() {
   music.currentTime = 0;
   playMusic();
 
+  /* Ocultamos completamente el mensaje al comenzar la partida */
   startBar.classList.remove("centered");
-  startBar.style.display = isPC ? "none" : "block";
-  startBar.innerText = "DOMINA EL BALÓN SIN DEJARLO CAER";
+  startBar.style.display = "none";
 }
 
 function getBGIndex() {
