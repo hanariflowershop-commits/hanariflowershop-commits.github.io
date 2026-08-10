@@ -41,7 +41,7 @@ canvas {
   background: #111;
 }
 
-/* Franja Inferior Mantenida (Sin botones) */
+/* Franja Inferior Mantenida */
 #bottomBarSpace {
   height: 95px;
   background: rgba(15, 15, 15, 0.95);
@@ -209,9 +209,9 @@ preloadAssets();
 let gameStarted = false, gameOver = false, gameWin = false, score = 0;
 let frame = 0;
 let bgScrollX = 0;
-const targetScore = 100;
+const targetScore = 1000; // Objetivo actualizado a 1000 puntos
 
-/* 🐼 JUGADOR (TANQUE FIJO SOBRE LA FRANJA) */
+/* 🐼 JUGADOR (TANQUE FIJO) */
 let tank = {
   x: 0,
   y: 0,
@@ -252,28 +252,58 @@ function resetGame() {
   startBar.style.display = "none";
 }
 
-/* 👾 ENEMIGOS (VARIEDAD DE CHARNIS) */
+/* 👾 GENERACIÓN Y POSICIONAMIENTO REALISTA DE ENEMIGOS */
 function spawnEnemy() {
-  if (enemies.length >= 3 || gameWin) return;
+  if (enemies.length >= 4 || gameWin) return;
   
-  // Tipos de sprite base aleatorios para los tiradores
   const spriteTypes = ["charniLeft", "charniRight", "charniBack", "charniWin", "charniCover"];
   const selectedType = spriteTypes[Math.floor(Math.random() * spriteTypes.length)];
   const isCover = selectedType === "charniCover";
 
-  const sideMargin = 50;
-  const enemyX = sideMargin + Math.random() * (canvas.width - sideMargin * 2);
-  const enemyY = canvas.height * 0.35 + Math.random() * (canvas.height * 0.2);
+  /* Puntos estratégicos en el suelo y fondo coherente para evitar flotar */
+  let enemyX, enemyY, scaleRatio;
+
+  if (isCover) {
+    // La cobertura de piedra aparece en el terreno cercano/medio, más cerca del suelo/tanque
+    enemyX = (0.15 + Math.random() * 0.7) * canvas.width;
+    enemyY = canvas.height * 0.58 + Math.random() * (canvas.height * 0.12);
+    scaleRatio = 1.0;
+  } else {
+    // Zona 1: Cerca del poblado al fondo (más pequeños)
+    // Zona 2: Base de la falda de las montañas (tamaño medio)
+    // Zona 3: Suelo abierto del desierto (tamaño normal)
+    const zone = Math.random();
+    if (zone < 0.35) {
+      // Fondo junto a las casitas del desierto
+      enemyX = (0.4 + Math.random() * 0.3) * canvas.width;
+      enemyY = canvas.height * 0.46;
+      scaleRatio = 0.75;
+    } else if (zone < 0.7) {
+      // Base inferior de los cañones laterales
+      const side = Math.random() > 0.5 ? 0.18 : 0.78;
+      enemyX = side * canvas.width + (Math.random() * 30 - 15);
+      enemyY = canvas.height * 0.52;
+      scaleRatio = 0.85;
+    } else {
+      // Plano medio en la tierra
+      enemyX = (0.12 + Math.random() * 0.76) * canvas.width;
+      enemyY = canvas.height * 0.56 + Math.random() * (canvas.height * 0.08);
+      scaleRatio = 1.0;
+    }
+  }
+
+  const baseW = isCover ? 75 : 58;
+  const baseH = isCover ? 70 : 78;
 
   enemies.push({
     x: enemyX,
     y: enemyY,
-    w: isCover ? 70 : 55,
-    h: isCover ? 65 : 75,
+    w: baseW * scaleRatio,
+    h: baseH * scaleRatio,
     isCover: isCover,
     baseSprite: selectedType,
     hp: isCover ? 2 : 1,
-    shootCooldown: Math.floor(Math.random() * 70) + 50,
+    shootCooldown: Math.floor(Math.random() * 60) + 40,
     state: "idle"
   });
 }
@@ -287,7 +317,7 @@ function showVictory() {
   startBar.style.display = "flex";
   startBar.innerHTML = `
     🏆 ¡MISIÓN CUMPLIDA!<br>
-    Has despejado el área con el tanque<br><br>
+    Has alcanzado los 1000 PUNTOS<br><br>
     🎁 Ganaste un Hana Café<br>
     🎟 Código: <b>${code}</b><br>
     <small>Toca para volver a jugar</small>
@@ -429,13 +459,13 @@ function update() {
     if (tank.shootTimer === 0) tank.state = "normal";
   }
 
-  if (frame % 85 === 0) spawnEnemy();
+  if (frame % 75 === 0) spawnEnemy();
 
   enemies.forEach(e => {
     e.shootCooldown--;
     if (e.shootCooldown <= 0) {
       e.state = "shooting";
-      e.shootCooldown = 100 + Math.random() * 50;
+      e.shootCooldown = 90 + Math.random() * 45;
 
       effects.push({
         type: "flashPistol",
@@ -450,7 +480,7 @@ function update() {
       });
 
       vibrate(25);
-    } else if (e.shootCooldown < 80 && e.state === "shooting") {
+    } else if (e.shootCooldown < 70 && e.state === "shooting") {
       e.state = "idle";
     }
   });
