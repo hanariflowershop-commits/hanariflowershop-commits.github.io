@@ -250,6 +250,11 @@ footer span {
   const audioSrc = document.getElementById('audio-src');
   let isActivating = false;
 
+  // Precarga inicial del audio
+  window.addEventListener('DOMContentLoaded', () => {
+    audio.load();
+  });
+
   // Respaldo por si el nombre está guardado en mayúsculas (arcade.MP3)
   audioSrc.addEventListener('error', () => {
     if (audioSrc.src.includes('arcade.mp3')) {
@@ -267,8 +272,17 @@ footer span {
       e.stopPropagation();
     }
 
-    // Reproducir audio
-    audio.play().catch(err => console.log("Error de audio:", err));
+    // Forzar reinicio y carga del búfer
+    audio.currentTime = 0;
+    
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(err => {
+        // Intento secundario si el primer intento de recarga falló
+        audio.load();
+        audio.play().catch(e => console.log("Error al reproducir audio:", e));
+      });
+    }
 
     // Ocultar overlay
     overlay.classList.add('hidden');
@@ -279,14 +293,14 @@ footer span {
     }, 350);
   }
 
-  // Detecta cuando el usuario regresa usando el botón "Atrás" del navegador
-  window.addEventListener('pageshow', (event) => {
-    // Reestablece el estado del overlay y el bloqueo
+  // Detecta cuando el usuario regresa o recarga la página
+  window.addEventListener('pageshow', () => {
     isActivating = false;
     document.body.classList.add('overlay-active');
     overlay.classList.remove('hidden');
     audio.pause();
     audio.currentTime = 0;
+    audio.load();
   });
 
   // Escuchar toque o clic en el overlay
