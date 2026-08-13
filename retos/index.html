@@ -27,27 +27,27 @@ body, html {
   -webkit-user-select: none;
 }
 
-/* Pantalla de inicio para activar el audio */
+/* Pantalla superpuesta para activar el audio */
 #start-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(13, 13, 13, 0.95);
+  background: rgba(13, 13, 13, 0.96);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 9999;
   cursor: pointer;
-  transition: opacity 0.5s ease, visibility 0.5s ease;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
 }
 
 #start-overlay.hidden {
   opacity: 0;
   visibility: hidden;
-  pointer-events: none;
+  pointer-events: none; /* Desactiva cualquier clic en el overlay cuando se oculta */
 }
 
 .start-btn {
@@ -63,6 +63,7 @@ body, html {
   box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
   animation: pulse 1.5s infinite;
   cursor: pointer;
+  pointer-events: none; /* Deja que el contenedor controle el evento */
 }
 
 @keyframes pulse {
@@ -125,7 +126,6 @@ main {
   background-color: #111;
 }
 
-/* Posicionamiento absoluto para cubrir todo el contenedor */
 .bg-image {
   position: absolute;
   top: 0;
@@ -203,10 +203,10 @@ footer span {
 
 <!-- Pantalla superpuesta inicial -->
 <div id="start-overlay">
-  <button class="start-btn">▶ Toca para iniciar</button>
+  <button class="start-btn">▶ Toca para continuar</button>
 </div>
 
-<!-- Etiqueta de audio configurada en bucle (loop) -->
+<!-- Audio arcade.mp3 configurado en bucle -->
 <audio id="bg-audio" loop preload="auto">
   <source src="arcade.mp3" type="audio/mpeg">
 </audio>
@@ -218,7 +218,6 @@ footer span {
 
 <main>
   <div class="grid-container">
-    <!-- RUTA DIRECTA (mismo nivel que index.html en /retos/) -->
     <img 
       src="cuadrante.jpg" 
       onerror="this.onerror=null; this.src='cuadrante.JPG';" 
@@ -227,22 +226,18 @@ footer span {
     >
 
     <div class="quadrant-grid">
-      <!-- Cuadrante Rojo: Runner -->
       <a href="https://hanariec.com/runner" class="quadrant" aria-label="Jugar Panda Runner">
         <span class="label-badge">🏃 Panda Runner</span>
       </a>
 
-      <!-- Cuadrante Azul: Flappy -->
       <a href="https://hanariec.com/flappy" class="quadrant" aria-label="Jugar Panda Flappy">
         <span class="label-badge">🚀 Panda Flappy</span>
       </a>
 
-      <!-- Cuadrante Amarillo: Tank -->
       <a href="https://hanariec.com/panda-tank" class="quadrant" aria-label="Jugar Panda Tank">
         <span class="label-badge">💥 Panda Tank</span>
       </a>
 
-      <!-- Cuadrante Verde: Fulbito -->
       <a href="https://hanariec.com/fulbito" class="quadrant" aria-label="Jugar Panda Dominadas">
         <span class="label-badge">⚽ Panda Dominadas</span>
       </a>
@@ -257,22 +252,28 @@ footer span {
 <script>
   const overlay = document.getElementById('start-overlay');
   const audio = document.getElementById('bg-audio');
+  let started = false;
 
-  function startExperience() {
-    // Reproducir música
+  function startExperience(e) {
+    if (started) return;
+    started = true;
+
+    // Evita el clic fantasma en pantallas táctiles hacia los enlaces del menú
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    // Inicia el audio de fondo
     audio.play().catch(err => console.log("Error al reproducir audio:", err));
     
-    // Ocultar la pantalla superpuesta
+    // Bloquea inmediatamente eventos en la capa inicial y la oculta
+    overlay.style.pointerEvents = 'none';
     overlay.classList.add('hidden');
-    
-    // Remover eventos de escucha para evitar ejecuciones múltiples
-    overlay.removeEventListener('click', startExperience);
-    overlay.removeEventListener('touchstart', startExperience);
   }
 
-  // Activar tanto en clic como en evento táctil
-  overlay.addEventListener('click', startExperience);
-  overlay.addEventListener('touchstart', startExperience);
+  // Se escucha el evento de toque primario y clic
+  overlay.addEventListener('pointerdown', startExperience, { passive: false });
 </script>
 
 </body>
