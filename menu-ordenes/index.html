@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú Interactivo - Hanari</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f0f0f;
+            --card-bg: #181818;
+            --text-color: #f5f5f5;
+            --accent-color: #ffffff;
+            --border-color: #333333;
+            --font-title: 'Playfair Display', serif;
+            --font-body: 'Montserrat', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-body);
+            padding-bottom: 90px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 20px 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+        }
+
+        .logo-title {
+            font-family: var(--font-title);
+            font-size: 2.5rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section-title {
+            font-family: var(--font-title);
+            font-size: 1.4rem;
+            margin: 25px 0 15px;
+            border-bottom: 2px solid var(--accent-color);
+            display: inline-block;
+            padding-bottom: 3px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .product-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .product-card:active {
+            transform: scale(0.98);
+        }
+
+        .product-info {
+            flex-grow: 1;
+            padding-right: 15px;
+        }
+
+        .product-name {
+            font-weight: 600;
+            font-size: 1.05rem;
+            margin-bottom: 4px;
+        }
+
+        .product-desc {
+            font-size: 0.78rem;
+            color: #888;
+            line-height: 1.3;
+        }
+
+        .product-price {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #fff;
+            margin-top: 6px;
+        }
+
+        .btn-add {
+            background-color: transparent;
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-add:hover {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        /* Modal Customization */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 450px;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .modal-title {
+            font-family: var(--font-title);
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .option-group {
+            margin-bottom: 15px;
+        }
+
+        .option-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+            color: #ccc;
+        }
+
+        .option-select {
+            width: 100%;
+            padding: 10px;
+            background-color: #222;
+            color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-confirm {
+            flex: 1;
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-cancel {
+            flex: 1;
+            background-color: transparent;
+            color: #888;
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Floating Cart Bar */
+        .cart-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #181818;
+            border-top: 1px solid var(--border-color);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 900;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+        }
+
+        .cart-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cart-count {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+
+        .cart-total {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .btn-view-cart {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        /* Cart View Modal */
+        .cart-modal-body {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .cart-item-details {
+            font-size: 0.85rem;
+        }
+
+        .cart-item-title {
+            font-weight: 600;
+        }
+
+        .cart-item-opts {
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        .btn-remove {
+            background: none;
+            border: none;
+            color: #ff5555;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0 5px;
+        }
+
+        .table-input-group {
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .table-input-group label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .table-input-group input {
+            width: 100%;
+            padding: 10px;
+            background-color: #222;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        .whatsapp-btn {
+            background-color: #25d366;
+            color: #fff;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 class="logo-title">HANARI</h1>
+        <p class="subtitle">Menú Virtual & Comandas</p>
+    </header>
+
+    <div class="container">
+        
+        <!-- FAVORITOS DE NUESTROS CLIENTES -->
+        <h2 class="section-title">Favoritos</h2>
+        
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Combo Mini-Waffles</div>
+                <div class="product-desc">Tres mini-waffles con topping a elección</div>
+                <div class="product-price">$1.50</div>
+            </div>
+            <button class="btn-add" onclick="openOptions('Combo Mini-Waffles', 1.50, ['Topping'])">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Combo Taiyaki</div>
+                <div class="product-desc">2 taiyakis + salsa a elección</div>
+                <div class="product-price">$2.50</div>
+            </div>
+            <button class="btn-add" onclick="openOptions('Combo Taiyaki', 2.50, ['Sabor Taiyaki'])">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Hana Café (210ml)</div>
+                <div class="product-desc">Esencia de café japonés, perfecta para disfrutar hasta americanos</div>
+                <div class="product-price">$2.00</div>
+            </div>
+            <button class="btn-add" onclick="addItem('Hana Café', 2.00)">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Marron Latte (240ml)</div>
+                <div class="product-desc">Espresso con leche sabor a castañas, suave y cremoso</div>
+                <div class="product-price">$3.30</div>
+            </div>
+            <button class="btn-add" onclick="openOptions('Marron Latte', 3.30, ['Leche'])">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Nube de Leche (240ml)</div>
+                <div class="product-desc">Leche espumada y endulzada con lluvia de oreo</div>
+                <div class="product-price">$2.50</div>
+            </div>
+            <button class="btn-add" onclick="addItem('Nube de Leche', 2.50)">Pedir</button>
+        </div>
+
+        <!-- BEBIDAS CALIENTES -->
+        <h2 class="section-title">Bebidas Calientes</h2>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Espresso (30ml)</div>
+                <div class="product-desc">Bebida corta y concentrada</div>
+                <div class="product-price">$1.60</div>
+            </div>
+            <button class="btn-add" onclick="addItem('Espresso', 1.60)">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Americano (240ml)</div>
+                <div class="product-desc">Café suave y equilibrado</div>
+                <div class="product-price">$2.00</div>
+            </div>
+            <button class="btn-add" onclick="addItem('Americano', 2.00)">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Cappuccino (240ml)</div>
+                <div class="product-desc">Espresso con leche vaporizada y capa de espuma gruesa</div>
+                <div class="product-price">$2.60</div>
+            </div>
+            <button class="btn-add" onclick="openOptions('Cappuccino', 2.60, ['Leche'])">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Cappuccino Especial (240ml)</div>
+                <div class="product-desc">Cappuccino con un toque único de sabor a elección</div>
+                <div class="product-price">$3.00</div>
+            </div>
+            <button class="btn-add" onclick="openOptions('Cappuccino Especial', 3.00, ['Sirope', 'Leche'])">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Latte (240ml)</div>
+                <div class="product-desc">Espresso con leche vaporizada y capa de espuma suave</div>
+                <div class="product-price">$2.80</div>
+            </div>
+            <button class="btn-add" onclick="openOptions('Latte', 2.80, ['Leche'])">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Latte Especial (240ml)</div>
+                <div class="product-desc">Latte con toque de sabor a elección</div>
+                <div class="product-price">$3.10</div>
+            </div>
+            <button class="btn-add" onclick="openOptions('Latte Especial', 3.10, ['Sirope', 'Leche'])">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Moka (240ml)</div>
+                <div class="product-desc">Combinación espresso, leche y toque de chocolate</div>
+                <div class="product-price">$3.30</div>
+            </div>
+            <button class="btn-add" onclick="openOptions('Moka', 3.30, ['Leche'])">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Té Butterfly Pea (240ml)</div>
+                <div class="product-desc">Infusión floral aromática de flor de guisante azul</div>
+                <div class="product-price">$2.00</div>
+            </div>
+            <button class="btn-add" onclick="addItem('Té Butterfly Pea', 2.00)">Pedir</button>
+        </div>
+
+        <!-- BEBIDAS FRÍAS -->
+        <h2 class="section-title">Bebidas Frías</h2>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Jugo de Naranja (360ml)</div>
+                <div class="product-desc">Fresco e ideal para refrescarse</div>
+                <div class="product-price">$2.70</div>
+            </div>
+            <button class="btn-add" onclick="addItem('Jugo de Naranja', 2.70)">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Iced Choco Matcha (360ml)</div>
+                <div class="product-desc">Matcha frío con un toque a chocolate y leche</div>
+                <div class="product-price">$3.00</div>
+            </div>
+            <button class="btn-add" onclick="openOptions('Iced Choco Matcha', 3.00, ['Leche'])">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Iced Mikan Matcha (360ml)</div>
+                <div class="product-desc">Matcha frío con toque cítrico de mandarina y leche</div>
+                <div class="product-price">$3.20</div>
+            </div>
+            <button class="btn-add" onclick="openOptions('Iced Mikan Matcha', 3.20, ['Leche'])">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Iced Rose Matcha (360ml)</div>
+                <div class="product-desc">Bebida fría con matcha, leche y notas florales</div>
+                <div class="product-price">$3.50</div>
+            </div>
+            <button class="btn-add" onclick="openOptions('Iced Rose Matcha', 3.50, ['Leche'])">Pedir</button>
+        </div>
+
+    </div>
+
+    <!-- MODAL PERSONALIZACIÓN -->
+    <div class="modal" id="modalOptions">
+        <div class="modal-content">
+            <h3 class="modal-title" id="modalProductName">Personalizar Producto</h3>
+            <div id="modalOptionsContainer"></div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal('modalOptions')">Cancelar</button>
+                <button class="btn-confirm" onclick="confirmAddWithOptions()">Agregar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CARRITO -->
+    <div class="modal" id="modalCart">
+        <div class="modal-content">
+            <h3 class="modal-title">Tu Comanda</h3>
+            <div class="cart-modal-body" id="cartItemsList">
+                <!-- Items list dynamic -->
+            </div>
+            
+            <div class="table-input-group">
+                <label for="tableNumber">Número de Mesa / Ubicación:</label>
+                <input type="text" id="tableNumber" placeholder="Ej: Mesa 1, Llevar, Barra...">
+            </div>
+
+            <button class="whatsapp-btn" onclick="sendWhatsApp()">
+                📲 Enviar Comanda por WhatsApp
+            </button>
+            <button class="btn-cancel" style="width: 100%; margin-top: 10px;" onclick="closeModal('modalCart')">Seguir pidiendo</button>
+        </div>
+    </div>
+
+    <!-- BARRA INFERIOR DE COMPRA -->
+    <div class="cart-bar" id="cartBar" style="display: none;">
+        <div class="cart-info">
+            <span class="cart-count" id="cartCount">0 productos</span>
+            <span class="cart-total" id="cartTotal">$0.00</span>
+        </div>
+        <button class="btn-view-cart" onclick="openCart()">Ver Comanda</button>
+    </div>
+
+    <script>
+        const WHATSAPP_NUMBER = "593980161641"; 
+
+        const OPTIONS_CONFIG = {
+            'Sirope': ['Vainilla', 'Avellana', 'Caramelo', 'Chocolate'],
+            'Leche': ['Entera', 'Deslactosada', 'Almendra (+ $0.30)', 'Avena (+ $0.30)'],
+            'Sabor Taiyaki': ['Chocolate', 'Arequipe/Manjar', 'Crema Pastelera', 'Mixto'],
+            'Topping': ['Chocolate', 'Miel', 'Frutos Rojos', 'Oreo']
+        };
+
+        let cart = [];
+        let currentItemBuilding = null;
+
+        function addItem(name, price, options = {}) {
+            cart.push({
+                id: Date.now(),
+                name: name,
+                price: price,
+                options: options
+            });
+            updateCartUI();
+        }
+
+        function openOptions(name, price, requiredTypes) {
+            currentItemBuilding = { name, price, requiredTypes };
+            document.getElementById('modalProductName').innerText = name;
+            
+            const container = document.getElementById('modalOptionsContainer');
+            container.innerHTML = '';
+
+            requiredTypes.forEach(type => {
+                const group = document.createElement('div');
+                group.className = 'option-group';
+                
+                const label = document.createElement('label');
+                label.className = 'option-label';
+                label.innerText = `Selecciona ${type}:`;
+                
+                const select = document.createElement('select');
+                select.className = 'option-select';
+                select.dataset.optionType = type;
+
+                OPTIONS_CONFIG[type].forEach(opt => {
+                    const optEl = document.createElement('option');
+                    optEl.value = opt;
+                    optEl.innerText = opt;
+                    select.appendChild(optEl);
+                });
+
+                group.appendChild(label);
+                group.appendChild(select);
+                container.appendChild(group);
+            });
+
+            document.getElementById('modalOptions').classList.add('active');
+        }
+
+        function confirmAddWithOptions() {
+            if (!currentItemBuilding) return;
+
+            const selects = document.querySelectorAll('#modalOptionsContainer select');
+            const selectedOptions = {};
+            let extraPrice = 0;
+
+            selects.forEach(select => {
+                const type = select.dataset.optionType;
+                const val = select.value;
+                selectedOptions[type] = val;
+
+                if (val.includes('+ $0.30')) {
+                    extraPrice += 0.30;
+                }
+            });
+
+            addItem(currentItemBuilding.name, currentItemBuilding.price + extraPrice, selectedOptions);
+            closeModal('modalOptions');
+            currentItemBuilding = null;
+        }
+
+        function removeItem(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateCartUI();
+            renderCartItems();
+        }
+
+        function updateCartUI() {
+            const cartBar = document.getElementById('cartBar');
+            const cartCount = document.getElementById('cartCount');
+            const cartTotal = document.getElementById('cartTotal');
+
+            if (cart.length === 0) {
+                cartBar.style.display = 'none';
+                return;
+            }
+
+            cartBar.style.display = 'flex';
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            cartCount.innerText = `${cart.length} item${cart.length > 1 ? 's' : ''}`;
+            cartTotal.innerText = `$${total.toFixed(2)}`;
+        }
+
+        function openCart() {
+            renderCartItems();
+            document.getElementById('modalCart').classList.add('active');
+        }
+
+        function renderCartItems() {
+            const container = document.getElementById('cartItemsList');
+            container.innerHTML = '';
+
+            if (cart.length === 0) {
+                container.innerHTML = '<p style="color:#888; text-align:center;">No hay productos seleccionados.</p>';
+                return;
+            }
+
+            cart.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'cart-item';
+
+                let optsText = Object.entries(item.options)
+                    .map(([key, val]) => `${key}: ${val}`)
+                    .join(' | ');
+
+                itemEl.innerHTML = `
+                    <div class="cart-item-details">
+                        <div class="cart-item-title">${item.name} ($${item.price.toFixed(2)})</div>
+                        ${optsText ? `<div class="cart-item-opts">└ ${optsText}</div>` : ''}
+                    </div>
+                    <button class="btn-remove" onclick="removeItem(${item.id})">&times;</button>
+                `;
+                container.appendChild(itemEl);
+            });
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function sendWhatsApp() {
+            const table = document.getElementById('tableNumber').value.trim();
+            if (!table) {
+                alert('Por favor ingresa el número de Mesa o ubicación.');
+                return;
+            }
+
+            if (cart.length === 0) {
+                alert('Agrega al menos un producto a la comanda.');
+                return;
+            }
+
+            let message = `📋 *NUEVA COMANDA - ${table.toUpperCase()}*\n\n`;
+
+            cart.forEach(item => {
+                message += `• *1x ${item.name}* ($${item.price.toFixed(2)})\n`;
+                Object.entries(item.options).forEach(([k, v]) => {
+                    message += `  └ ${k}: ${v}\n`;
+                });
+            });
+
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            message += `\n💰 *Total estimado:* $${total.toFixed(2)}`;
+
+            const encodedUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+            window.open(encodedUrl, '_blank');
+        }
+    </script>
+</body>
+</html>
