@@ -250,11 +250,6 @@ footer span {
   const audioSrc = document.getElementById('audio-src');
   let isActivating = false;
 
-  // Precarga inicial del audio
-  window.addEventListener('DOMContentLoaded', () => {
-    audio.load();
-  });
-
   // Respaldo por si el nombre está guardado en mayúsculas (arcade.MP3)
   audioSrc.addEventListener('error', () => {
     if (audioSrc.src.includes('arcade.mp3')) {
@@ -272,15 +267,11 @@ footer span {
       e.stopPropagation();
     }
 
-    // Forzar reinicio y carga del búfer
-    audio.currentTime = 0;
-    
+    // Iniciar reproducción directa sin interrumpir la carga
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch(err => {
-        // Intento secundario si el primer intento de recarga falló
-        audio.load();
-        audio.play().catch(e => console.log("Error al reproducir audio:", e));
+        console.log("Error al reproducir audio:", err);
       });
     }
 
@@ -293,14 +284,15 @@ footer span {
     }, 350);
   }
 
-  // Detecta cuando el usuario regresa o recarga la página
-  window.addEventListener('pageshow', () => {
-    isActivating = false;
-    document.body.classList.add('overlay-active');
-    overlay.classList.remove('hidden');
-    audio.pause();
-    audio.currentTime = 0;
-    audio.load();
+  // Detecta cuando el usuario regresa desde otra página (vía caché del navegador)
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      isActivating = false;
+      document.body.classList.add('overlay-active');
+      overlay.classList.remove('hidden');
+      audio.pause();
+      try { audio.currentTime = 0; } catch(e) {}
+    }
   });
 
   // Escuchar toque o clic en el overlay
