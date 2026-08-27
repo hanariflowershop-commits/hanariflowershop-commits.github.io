@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menú Virtual</title>
+    <title>Menú</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -38,21 +38,14 @@
             border-bottom: 1px solid var(--border-color);
             background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
         }
 
         .logo-img {
-            max-width: 160px;
+            max-width: 180px;
             height: auto;
             display: block;
-        }
-
-        .subtitle {
-            font-size: 0.85rem;
-            color: #aaa;
-            margin-top: 8px;
-            font-style: italic;
         }
 
         .notice-banner {
@@ -385,8 +378,7 @@
 <body>
 
     <header>
-        <img src="images/hanarilogo.png" alt="Logo" class="logo-img">
-        <p class="subtitle">Menú Virtual & Comandas</p>
+        <img src="hanarilogonaranja.png" alt="Logo" class="logo-img">
     </header>
 
     <div class="notice-banner">
@@ -459,7 +451,7 @@
                 <div class="product-desc">Leche espumada y endulzada, acompañado de una lluvia de oreo</div>
                 <div class="product-price">$2.50</div>
             </div>
-            <button class="btn-add" onclick="addItem('Nube de Leche/ 240ml', 2.50)">Pedir</button>
+            <button class="btn-add" onclick="openOptions('Nube de Leche/ 240ml', 2.50, ['Leche'])">Pedir</button>
         </div>
 
         <!-- BEBIDAS CALIENTES -->
@@ -650,7 +642,7 @@
         <div class="modal-content">
             <h3 class="modal-title">Tu Comanda</h3>
             <div class="cart-modal-body" id="cartItemsList">
-                <!-- Items list dynamic -->
+                <!-- Lista dinámica de productos -->
             </div>
             
             <div class="table-input-group">
@@ -679,7 +671,7 @@
 
         const OPTIONS_CONFIG = {
             'Sirope': ['Vainilla', 'Avellana', 'Caramelo', 'Chocolate'],
-            'Leche': ['Entera', 'Deslactosada', 'Almendra', 'Avena'],
+            'Leche': ['Entera', 'Semidescremada', 'Semidescremada-Deslactosada'],
             'Sabor Taiyaki': ['Chocolate', 'Arequipe/Manjar', 'Crema Pastelera', 'Mixto'],
             'Topping': ['Chocolate', 'Miel', 'Frutos Rojos', 'Oreo']
         };
