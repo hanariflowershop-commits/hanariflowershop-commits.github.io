@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menú Interactivo - Hanari</title>
+    <title>Menú Virtual</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -43,30 +43,45 @@
         }
 
         .logo-img {
-            max-width: 130px;
+            max-width: 160px;
             height: auto;
-            margin-bottom: 12px;
-        }
-
-        .logo-title {
-            font-family: var(--font-title);
-            font-size: 2.2rem;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            font-weight: 700;
+            display: block;
         }
 
         .subtitle {
             font-size: 0.85rem;
             color: #aaa;
-            margin-top: 5px;
+            margin-top: 8px;
             font-style: italic;
+        }
+
+        .notice-banner {
+            background-color: #181818;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px auto 10px;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .notice-banner p {
+            font-size: 0.85rem;
+            color: #ccc;
+            font-style: italic;
+        }
+
+        .notice-banner .sub-text {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 5px;
+            font-style: normal;
         }
 
         .container {
             max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px 20px 20px;
         }
 
         .section-title {
@@ -136,6 +151,26 @@
         .btn-add:hover {
             background-color: var(--accent-color);
             color: var(--bg-color);
+        }
+
+        .info-box {
+            background-color: #141414;
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .info-box h3 {
+            font-family: var(--font-title);
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+        }
+
+        .info-box p {
+            font-size: 0.8rem;
+            color: #aaa;
         }
 
         /* Modal Personalización */
@@ -350,20 +385,24 @@
 <body>
 
     <header>
-        <img src="images/hanarilogo.png" alt="Hanari Logo" class="logo-img">
-        <h1 class="logo-title">HANARI</h1>
+        <img src="images/hanarilogo.png" alt="Logo" class="logo-img">
         <p class="subtitle">Menú Virtual & Comandas</p>
     </header>
 
+    <div class="notice-banner">
+        <p>"Gracias por visitarnos. No olvides probar nuestros postres: son el toque final que te hace único."</p>
+        <p class="sub-text">Los precios incluyen IVA</p>
+    </div>
+
     <div class="container">
         
-        <!-- FAVORITOS -->
-        <h2 class="section-title">Favoritos</h2>
+        <!-- FAVORITOS DE NUESTROS CLIENTES -->
+        <h2 class="section-title">Favoritos de nuestros clientes</h2>
         
         <div class="product-card">
             <div class="product-info">
                 <div class="product-name">Combo Mini-Waffles</div>
-                <div class="product-desc">Tres mini-waffles con topping a elección</div>
+                <div class="product-desc">Tres mini-waffles con topping a elección: Consulta los sabores disponibles</div>
                 <div class="product-price">$1.50</div>
             </div>
             <button class="btn-add" onclick="openOptions('Combo Mini-Waffles', 1.50, ['Topping'])">Pedir</button>
@@ -371,8 +410,26 @@
 
         <div class="product-card">
             <div class="product-info">
+                <div class="product-name">Hilos de Nara</div>
+                <div class="product-desc">Una combinación de masa dulce con fruta a disponibilidad</div>
+                <div class="product-price">$1.90</div>
+            </div>
+            <button class="btn-add" onclick="addItem('Hilos de Nara', 1.90)">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Hana Café/ 210ml</div>
+                <div class="product-desc">Esencia de café japonés, perfecta para disfrutar hasta americanos</div>
+                <div class="product-price">$2.00</div>
+            </div>
+            <button class="btn-add" onclick="addItem('Hana Café/ 210ml', 2.00)">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
                 <div class="product-name">Combo Taiyaki</div>
-                <div class="product-desc">2 taiyakis + salsa a elección</div>
+                <div class="product-desc">2 taiyakis + salsa a elección: Consulta los sabores disponibles</div>
                 <div class="product-price">$2.50</div>
             </div>
             <button class="btn-add" onclick="openOptions('Combo Taiyaki', 2.50, ['Sabor Taiyaki'])">Pedir</button>
@@ -380,164 +437,198 @@
 
         <div class="product-card">
             <div class="product-info">
-                <div class="product-name">Hana Café (210ml)</div>
-                <div class="product-desc">Esencia de café japonés, perfecta para disfrutar hasta americanos</div>
-                <div class="product-price">$2.00</div>
-            </div>
-            <button class="btn-add" onclick="addItem('Hana Café', 2.00)">Pedir</button>
-        </div>
-
-        <div class="product-card">
-            <div class="product-info">
-                <div class="product-name">Marron Latte (240ml)</div>
+                <div class="product-name">Marron Latte/ 240ml</div>
                 <div class="product-desc">Espresso con leche sabor a castañas, suave y cremoso</div>
                 <div class="product-price">$3.30</div>
             </div>
-            <button class="btn-add" onclick="openOptions('Marron Latte', 3.30, ['Leche'])">Pedir</button>
+            <button class="btn-add" onclick="openOptions('Marron Latte/ 240ml', 3.30, ['Leche'])">Pedir</button>
         </div>
 
         <div class="product-card">
             <div class="product-info">
-                <div class="product-name">Nube de Leche (240ml)</div>
-                <div class="product-desc">Leche espumada y endulzada con lluvia de oreo</div>
+                <div class="product-name">Té Sencha/ 240ml</div>
+                <div class="product-desc">Un té verde japonés fresco, herbal y ligero</div>
+                <div class="product-price">$1.90</div>
+            </div>
+            <button class="btn-add" onclick="addItem('Té Sencha/ 240ml', 1.90)">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Nube de Leche/ 240ml</div>
+                <div class="product-desc">Leche espumada y endulzada, acompañado de una lluvia de oreo</div>
                 <div class="product-price">$2.50</div>
             </div>
-            <button class="btn-add" onclick="addItem('Nube de Leche', 2.50)">Pedir</button>
+            <button class="btn-add" onclick="addItem('Nube de Leche/ 240ml', 2.50)">Pedir</button>
         </div>
 
         <!-- BEBIDAS CALIENTES -->
-        <h2 class="section-title">Bebidas Calientes</h2>
+        <h2 class="section-title">Bebidas calientes</h2>
 
         <div class="product-card">
             <div class="product-info">
-                <div class="product-name">Espresso (30ml)</div>
+                <div class="product-name">Espresso/ 30ml</div>
                 <div class="product-desc">Bebida corta y concentrada</div>
                 <div class="product-price">$1.60</div>
             </div>
-            <button class="btn-add" onclick="addItem('Espresso', 1.60)">Pedir</button>
+            <button class="btn-add" onclick="addItem('Espresso/ 30ml', 1.60)">Pedir</button>
         </div>
 
         <div class="product-card">
             <div class="product-info">
-                <div class="product-name">Americano (240ml)</div>
-                <div class="product-desc">Café suave y equilibrado</div>
+                <div class="product-name">Americano/ 240ml</div>
+                <div class="product-desc">Café suave y equilibrado, preparado con espresso y agua caliente</div>
                 <div class="product-price">$2.00</div>
             </div>
-            <button class="btn-add" onclick="addItem('Americano', 2.00)">Pedir</button>
+            <button class="btn-add" onclick="addItem('Americano/ 240ml', 2.00)">Pedir</button>
         </div>
 
         <div class="product-card">
             <div class="product-info">
-                <div class="product-name">Cappuccino (240ml)</div>
-                <div class="product-desc">Espresso con leche vaporizada y capa de espuma gruesa</div>
+                <div class="product-name">Cappuccino/ 240ml</div>
+                <div class="product-desc">Espresso con leche vaporizada y una capa de espuma gruesa</div>
                 <div class="product-price">$2.60</div>
             </div>
-            <button class="btn-add" onclick="openOptions('Cappuccino', 2.60, ['Leche'])">Pedir</button>
+            <button class="btn-add" onclick="openOptions('Cappuccino/ 240ml', 2.60, ['Leche'])">Pedir</button>
         </div>
 
         <div class="product-card">
             <div class="product-info">
-                <div class="product-name">Cappuccino Especial (240ml)</div>
-                <div class="product-desc">Cappuccino con un toque único de sabor a elección</div>
+                <div class="product-name">Cappuccino Especial/ 240ml</div>
+                <div class="product-desc">Cappuccino con un toque único de sabor: Consulta los sabores disponibles</div>
                 <div class="product-price">$3.00</div>
             </div>
-            <button class="btn-add" onclick="openOptions('Cappuccino Especial', 3.00, ['Sirope', 'Leche'])">Pedir</button>
+            <button class="btn-add" onclick="openOptions('Cappuccino Especial/ 240ml', 3.00, ['Sirope', 'Leche'])">Pedir</button>
         </div>
 
         <div class="product-card">
             <div class="product-info">
-                <div class="product-name">Latte (240ml)</div>
-                <div class="product-desc">Espresso con leche vaporizada y capa de espuma suave</div>
+                <div class="product-name">Latte/ 240ml</div>
+                <div class="product-desc">Espresso con leche vaporizada y una capa de espuma suave</div>
                 <div class="product-price">$2.80</div>
             </div>
-            <button class="btn-add" onclick="openOptions('Latte', 2.80, ['Leche'])">Pedir</button>
+            <button class="btn-add" onclick="openOptions('Latte/ 240ml', 2.80, ['Leche'])">Pedir</button>
         </div>
 
         <div class="product-card">
             <div class="product-info">
-                <div class="product-name">Latte Especial (240ml)</div>
-                <div class="product-desc">Latte con toque de sabor a elección</div>
+                <div class="product-name">Latte Especial/ 240ml</div>
+                <div class="product-desc">Latte con un toque único de sabor: Consulta los sabores disponibles</div>
                 <div class="product-price">$3.10</div>
             </div>
-            <button class="btn-add" onclick="openOptions('Latte Especial', 3.10, ['Sirope', 'Leche'])">Pedir</button>
+            <button class="btn-add" onclick="openOptions('Latte Especial/ 240ml', 3.10, ['Sirope', 'Leche'])">Pedir</button>
         </div>
 
         <div class="product-card">
             <div class="product-info">
-                <div class="product-name">Moka (240ml)</div>
-                <div class="product-desc">Combinación espresso, leche y toque de chocolate</div>
+                <div class="product-name">Moka/ 240ml</div>
+                <div class="product-desc">Combinación espresso, leche y un toque de chocolate</div>
                 <div class="product-price">$3.30</div>
             </div>
-            <button class="btn-add" onclick="openOptions('Moka', 3.30, ['Leche'])">Pedir</button>
+            <button class="btn-add" onclick="openOptions('Moka/ 240ml', 3.30, ['Leche'])">Pedir</button>
         </div>
 
         <div class="product-card">
             <div class="product-info">
-                <div class="product-name">Té Butterfly Pea (240ml)</div>
-                <div class="product-desc">Infusión floral aromática de flor de guisante azul</div>
+                <div class="product-name">Té Butterfly Pea/ 240ml</div>
+                <div class="product-desc">Infusión con sabor ligero y aromático de flor de guisante azul</div>
                 <div class="product-price">$2.00</div>
             </div>
-            <button class="btn-add" onclick="addItem('Té Butterfly Pea', 2.00)">Pedir</button>
+            <button class="btn-add" onclick="addItem('Té Butterfly Pea/ 240ml', 2.00)">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Tés Aromatizados/ 240ml</div>
+                <div class="product-desc">Consulta los sabores disponibles</div>
+                <div class="product-price">$1.90</div>
+            </div>
+            <button class="btn-add" onclick="addItem('Tés Aromatizados/ 240ml', 1.90)">Pedir</button>
         </div>
 
         <!-- BEBIDAS FRÍAS -->
-        <h2 class="section-title">Bebidas Frías</h2>
+        <h2 class="section-title">Bebidas frías</h2>
 
         <div class="product-card">
             <div class="product-info">
-                <div class="product-name">Jugo de Naranja (360ml)</div>
+                <div class="product-name">Jugo de Naranja/ 360ml</div>
                 <div class="product-desc">Fresco e ideal para refrescarse</div>
                 <div class="product-price">$2.70</div>
             </div>
-            <button class="btn-add" onclick="addItem('Jugo de Naranja', 2.70)">Pedir</button>
+            <button class="btn-add" onclick="addItem('Jugo de Naranja/ 360ml', 2.70)">Pedir</button>
         </div>
 
         <div class="product-card">
             <div class="product-info">
-                <div class="product-name">Iced Choco Matcha (360ml)</div>
+                <div class="product-name">Iced Choco Matcha/ 360ml</div>
                 <div class="product-desc">Matcha frío con un toque a chocolate y leche</div>
                 <div class="product-price">$3.00</div>
             </div>
-            <button class="btn-add" onclick="openOptions('Iced Choco Matcha', 3.00, ['Leche'])">Pedir</button>
+            <button class="btn-add" onclick="openOptions('Iced Choco Matcha/ 360ml', 3.00, ['Leche'])">Pedir</button>
         </div>
 
         <div class="product-card">
             <div class="product-info">
-                <div class="product-name">Iced Mikan Matcha (360ml)</div>
-                <div class="product-desc">Matcha frío con toque cítrico de mandarina y leche</div>
+                <div class="product-name">Iced Mikan Matcha/ 360ml</div>
+                <div class="product-desc">Matcha frío con un toque cítrico de mandarina y un poco de leche</div>
                 <div class="product-price">$3.20</div>
             </div>
-            <button class="btn-add" onclick="openOptions('Iced Mikan Matcha', 3.20, ['Leche'])">Pedir</button>
+            <button class="btn-add" onclick="openOptions('Iced Mikan Matcha/ 360ml', 3.20, ['Leche'])">Pedir</button>
         </div>
 
         <div class="product-card">
             <div class="product-info">
-                <div class="product-name">Iced Rose Matcha (360ml)</div>
-                <div class="product-desc">Bebida fría con matcha, leche y notas florales</div>
+                <div class="product-name">Iced Rose Matcha/ 360ml</div>
+                <div class="product-desc">Una bebida fría con matcha, leche y notas florales de hortencia</div>
                 <div class="product-price">$3.50</div>
             </div>
-            <button class="btn-add" onclick="openOptions('Iced Rose Matcha', 3.50, ['Leche'])">Pedir</button>
+            <button class="btn-add" onclick="openOptions('Iced Rose Matcha/ 360ml', 3.50, ['Leche'])">Pedir</button>
         </div>
 
-        <!-- POSTRES & SNACKS -->
-        <h2 class="section-title">Postres & Waffles</h2>
+        <!-- CÓCTAELS & BEBIDAS ALCOHÓLICAS -->
+        <h2 class="section-title">Cócteles & Bebidas Alcohólicas</h2>
 
         <div class="product-card">
             <div class="product-info">
-                <div class="product-name">Waffle Clásico</div>
-                <div class="product-desc">Waffle dorado acompañado con miel o sirope a elección</div>
-                <div class="product-price">$2.00</div>
+                <div class="product-name">Nigori Sake/ 40ml</div>
+                <div class="product-desc">Un sake tradicional, reconocido por su textura sedosa y su dulzura envolvente</div>
+                <div class="product-price">$3.50</div>
             </div>
-            <button class="btn-add" onclick="openOptions('Waffle Clásico', 2.00, ['Topping'])">Pedir</button>
+            <button class="btn-add" onclick="addItem('Nigori Sake/ 40ml', 3.50)">Pedir</button>
         </div>
 
         <div class="product-card">
             <div class="product-info">
-                <div class="product-name">Taiyaki Individual</div>
-                <div class="product-desc">Pastelejo japonés en forma de pez relleno a elección</div>
-                <div class="product-price">$1.30</div>
+                <div class="product-name">Kiseki Dream/ 325ml</div>
+                <div class="product-desc">Fusión de un sirope especial con vino rosado y cerveza con un toque cítrico de mandarina, limón y sake</div>
+                <div class="product-price">$3.80</div>
             </div>
-            <button class="btn-add" onclick="openOptions('Taiyaki Individual', 1.30, ['Sabor Taiyaki'])">Pedir</button>
+            <button class="btn-add" onclick="addItem('Kiseki Dream/ 325ml', 3.80)">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Hikari Spritz/ 325ml</div>
+                <div class="product-desc">Una combinación de vino rosado, sirope de vainilla, cerveza, jugo de Naranja, toronja y sake</div>
+                <div class="product-price">$4.50</div>
+            </div>
+            <button class="btn-add" onclick="addItem('Hikari Spritz/ 325ml', 4.50)">Pedir</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-info">
+                <div class="product-name">Ajisai Nocturne/ 325ml</div>
+                <div class="product-desc">Una bebida vibrante de color azul intenso, con el suave sabor floral de sirope de rosa y flor de guisante azul, equilibrada con los cítricos del jugo de naranja y limón</div>
+                <div class="product-price">$4.80</div>
+            </div>
+            <button class="btn-add" onclick="addItem('Ajisai Nocturne/ 325ml', 4.80)">Pedir</button>
+        </div>
+
+        <!-- RINCÓN DULCE Y SALADO -->
+        <div class="info-box">
+            <h3>Rincón dulce y salado</h3>
+            <p>Nuestros postres son exclusivos y varían según la temporada.</p>
+            <p style="margin-top:5px; font-weight:600; color:#fff;">¡Consulta en caja para descubrir los nuevos sabores y opciones disponibles hoy!</p>
         </div>
 
     </div>
