@@ -250,7 +250,7 @@ footer span {
   const audioSrc = document.getElementById('audio-src');
   let isActivating = false;
 
-  // Respaldo por si el nombre está guardado en mayúsculas (arcade.MP3)
+  // Respaldo por si el archivo en el servidor se llama arcade.MP3 en mayúsculas
   audioSrc.addEventListener('error', () => {
     if (audioSrc.src.includes('arcade.mp3')) {
       audioSrc.src = 'arcade.MP3';
@@ -258,46 +258,43 @@ footer span {
     }
   });
 
-  function unlockAudioAndMenu(e) {
+  function playAudio() {
     if (isActivating) return;
     isActivating = true;
 
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+    // Intentar reproducir directamente
+    const promise = audio.play();
 
-    // Iniciar reproducción directa sin interrumpir la carga
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(err => {
-        console.log("Error al reproducir audio:", err);
+    if (promise !== undefined) {
+      promise.then(() => {
+        // Exito: Ocultamos pantalla negra
+        overlay.classList.add('hidden');
+        setTimeout(() => {
+          document.body.classList.remove('overlay-active');
+        }, 300);
+      }).catch(err => {
+        console.log("Autoplay bloqueado:", err);
+        // Si falló por falta de interacción, reseteamos la bandera
+        isActivating = false;
       });
-    }
-
-    // Ocultar overlay
-    overlay.classList.add('hidden');
-
-    // Desbloquear clics en los botones tras consumir el toque fantasma
-    setTimeout(() => {
+    } else {
+      overlay.classList.add('hidden');
       document.body.classList.remove('overlay-active');
-    }, 350);
+    }
   }
 
-  // Detecta cuando el usuario regresa desde otra página (vía caché del navegador)
-  window.addEventListener('pageshow', (event) => {
-    if (event.persisted) {
+  // Se escucha de manera standard el click/pointerup (compatible con touch en iOS y Android)
+  overlay.addEventListener('click', playAudio);
+  overlay.addEventListener('pointerup', playAudio);
+
+  // Si regresa desde el caché de navegación (botón Atrás del navegador)
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) {
       isActivating = false;
       document.body.classList.add('overlay-active');
       overlay.classList.remove('hidden');
-      audio.pause();
-      try { audio.currentTime = 0; } catch(e) {}
     }
   });
-
-  // Escuchar toque o clic en el overlay
-  overlay.addEventListener('touchstart', unlockAudioAndMenu, { passive: false });
-  overlay.addEventListener('click', unlockAudioAndMenu);
 </script>
 
 </body>
