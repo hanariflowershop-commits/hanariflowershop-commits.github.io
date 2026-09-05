@@ -21,7 +21,8 @@ html, body {
 canvas {
   display: block;
   width: 100vw;
-  height: 65vh;
+  /* Antes: height: 65vh (dejaba un hueco negro hasta la barra inferior) */
+  height: calc(100vh - 70px); /* llena todo hasta la barra de abajo */
   background: #111;
 }
 
@@ -55,6 +56,9 @@ canvas {
 }
 
 @media (hover: hover) and (pointer: fine) {
+  canvas {
+    height: 65vh; /* en PC se mantiene igual que antes */
+  }
   #startBar {
     top: 65vh;
     bottom: auto;
@@ -63,7 +67,7 @@ canvas {
 
 #scoreBox {
   position: fixed;
-  top: 20vh;
+  top: 10px;       /* antes: 20vh -> ahora pegado arriba del todo */
   right: 10px;
   display: flex;
   align-items: center;
@@ -134,7 +138,8 @@ function stepVibration() {
 /* 📐 RESIZE OPTIMIZADO */
 function resize() {
   canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight * 0.65;
+  // Antes: window.innerHeight * 0.65 (no coincidía con el hueco negro)
+  canvas.height = isPC ? window.innerHeight * 0.65 : (window.innerHeight - 70);
 }
 resize();
 window.addEventListener("resize", resize);
@@ -180,7 +185,7 @@ let assetsLoaded = false;
 
 async function preloadAssets() {
   const bgPaths = isPC ? pcBGPaths : mobileBGPaths;
-  
+
   const [loadedBamboos, loadedBGs, loadedSpriteEntries] = await Promise.all([
     Promise.all(bambooPaths.map(loadImage)),
     Promise.all(bgPaths.map(loadImage)),
@@ -217,7 +222,7 @@ function resetGame() {
   dino.vy = 0;
   dino.grounded = true;
   dino.frame = 0;
-  
+
   music.currentTime = 0;
   playMusic();
 
