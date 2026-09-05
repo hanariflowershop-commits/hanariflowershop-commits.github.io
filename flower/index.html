@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hanari Flower — Arreglos florales con el alma de Japón</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F6F0E4;
+    --paper:#FBF8F1;
+    --ink:#18140F;
+    --rose:#B5504B;
+    --rose-deep:#83322E;
+    --cobalt:#2E5596;
+    --sage:#7C9070;
+    --sage-deep:#586B4E;
+    --line: rgba(24,20,15,0.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,.display{
+    font-family:'Shippori Mincho', serif;
+    font-weight:800;
+    letter-spacing:0.01em;
+  }
+  a{color:inherit; text-decoration:none;}
+  img{max-width:100%; display:block;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+
+  /* ================= NAV (idéntico al index) ================= */
+  nav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(246,240,228,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; padding:14px 28px; }
+  .logo{display:flex; align-items:center; gap:10px;}
+  .logo img{height:26px; width:auto;}
+  .navlinks{display:flex; gap:30px; font-size:0.92rem;}
+  .navlinks a{position:relative; padding:4px 0;}
+  .navlinks a.active{color:var(--rose-deep);}
+  .navlinks a::after{
+    content:""; position:absolute; left:0; bottom:0; width:0; height:1.5px;
+    background:var(--rose); transition:width .25s ease;
+  }
+  .navlinks a:hover::after, .navlinks a.active::after{width:100%;}
+
+  .navtoggle{
+    display:none;
+    background:none; border:none; cursor:pointer;
+    width:38px; height:38px;
+    padding:0; margin:0;
+    align-items:center; justify-content:center;
+    position:relative; z-index:60;
+  }
+  .navtoggle span{
+    position:absolute; left:8px; right:8px; height:2px;
+    background:var(--ink); border-radius:2px;
+    transition:transform .3s ease, opacity .3s ease, top .3s ease;
+  }
+  .navtoggle span:nth-child(1){ top:13px; }
+  .navtoggle span:nth-child(2){ top:19px; }
+  .navtoggle span:nth-child(3){ top:25px; }
+  .navtoggle.open span:nth-child(1){ top:19px; transform:rotate(45deg); }
+  .navtoggle.open span:nth-child(2){ opacity:0; }
+  .navtoggle.open span:nth-child(3){ top:19px; transform:rotate(-45deg); }
+
+  /* ================= HERO ================= */
+  .fhero{ padding:80px 0 60px; position:relative; }
+  .fhero .wrap{
+    display:grid; grid-template-columns:1.1fr 0.9fr; gap:48px; align-items:center;
+  }
+  .fhero .kicker{ font-size:0.85rem; color:var(--sage-deep); margin-bottom:14px; font-weight:500; letter-spacing:0.06em; }
+  .fhero h1{
+    font-size:clamp(2.2rem,5vw,3.6rem); line-height:1.1; margin-bottom:20px; max-width:13ch;
+  }
+  .fhero h1 em{ font-style:normal; color:var(--sage-deep); }
+  .fhero p{ max-width:46ch; font-size:1.05rem; color:#3a342b; margin-bottom:26px; }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--sage-deep); color:var(--paper);
+    padding:13px 26px; border-radius:999px; font-size:0.95rem;
+    transition:background .2s ease, transform .2s ease;
+  }
+  .btn:hover{ background:var(--rose-deep); transform:translateY(-1px); }
+  .fhero-art{
+    aspect-ratio:4/5; border-radius:18px; overflow:hidden;
+    background:linear-gradient(160deg,#e7e0d0,#cfd6c4) center/cover;
+    background-image:url('https://hanariec.com/images/flower/hero-flower.jpg');
+    background-size:cover; background-position:center;
+    box-shadow:0 24px 50px rgba(24,20,15,0.18);
+  }
+  @media(max-width:820px){
+    .fhero .wrap{ grid-template-columns:1fr; }
+    .fhero-art{ order:-1; aspect-ratio:16/10; }
+    .navlinks{
+      display:flex; flex-direction:column; align-items:flex-start; gap:0;
+      position:absolute; top:100%; left:0; right:0;
+      background:var(--paper); border-bottom:1px solid var(--line);
+      max-height:0; overflow:hidden; transition:max-height .35s ease;
+    }
+    .navlinks.open{ max-height:400px; }
+    .navlinks a{ width:100%; padding:14px 28px; border-top:1px solid var(--line); }
+    .navlinks a::after{ display:none; }
+    .navtoggle{ display:flex; }
+  }
+
+  /* ================= REVEAL UTILS ================= */
+  .reveal{ opacity:0; transform:translateY(28px); transition:opacity .7s ease, transform .7s cubic-bezier(.16,1,.3,1); }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+  .stagger .reveal:nth-child(1){transition-delay:.05s;}
+  .stagger .reveal:nth-child(2){transition-delay:.12s;}
+  .stagger .reveal:nth-child(3){transition-delay:.19s;}
+  .stagger .reveal:nth-child(4){transition-delay:.26s;}
+
+  /* ================= SECTION HEADS ================= */
+  .section{ padding:70px 0; }
+  .section.alt{ background:var(--paper); }
+  .sec-head{ margin-bottom:44px; max-width:640px; }
+  .sec-head .kicker{ font-size:0.85rem; color:var(--rose-deep); margin-bottom:12px; font-weight:500; letter-spacing:0.05em; }
+  .sec-head h2{ font-size:clamp(1.8rem,3.4vw,2.6rem); line-height:1.15; margin-bottom:12px; }
+  .sec-head p{ color:#3a342b; font-size:1rem; }
+  .sec-note{
+    margin-top:36px; font-size:0.9rem; color:var(--rose-deep);
+    display:flex; align-items:center; gap:8px;
+  }
+
+  /* ================= PRICE PILL ================= */
+  .pill{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--sage-deep); color:var(--paper);
+    padding:8px 18px; border-radius:999px; font-size:0.92rem; font-weight:600;
+    width:fit-content;
+  }
+  .pill .lbl{ font-size:0.68rem; font-weight:500; letter-spacing:0.06em; opacity:0.8; text-transform:uppercase; }
+
+  /* ================= PRODUCT GRID (cards, tipo Brunch / Boxes) ================= */
+  .pgrid{ display:grid; grid-template-columns:repeat(3,1fr); gap:26px; }
+  .pcard{
+    background:var(--cream); border:1px solid var(--line); border-radius:16px;
+    overflow:hidden; display:flex; flex-direction:column;
+  }
+  .pcard .thumb{
+    aspect-ratio:4/3; background-size:cover; background-position:center; background-color:#DCD3BE;
+  }
+  .pcard .body{ padding:22px 22px 26px; display:flex; flex-direction:column; gap:12px; flex:1; }
+  .pcard h3{ font-size:1.25rem; }
+  .pcard p{ font-size:0.92rem; color:#4a4438; flex:1; }
+  .swatches{ display:flex; gap:8px; align-items:center; font-size:0.8rem; color:#4a4438; margin-top:4px; }
+  .dot{ width:16px; height:16px; border-radius:50%; display:inline-block; border:1px solid rgba(0,0,0,0.1); }
+
+  @media(max-width:900px){ .pgrid{ grid-template-columns:1fr 1fr; } }
+  @media(max-width:600px){ .pgrid{ grid-template-columns:1fr; } }
+
+  /* ================= PRODUCT ROW (imagen + texto alternado, tipo Occasion Arrangements) ================= */
+  .prow{
+    display:grid; grid-template-columns:1fr 1fr; gap:44px; align-items:center;
+    padding:36px 0; border-top:1px solid var(--line);
+  }
+  .prow:first-of-type{ border-top:none; }
+  .prow.reverse .rimg{ order:2; }
+  .rimg{
+    aspect-ratio:4/3.3; border-radius:14px; background-size:cover; background-position:center; background-color:#DCD3BE;
+  }
+  .rtext .kicker-sm{ font-size:0.82rem; color:var(--sage-deep); font-weight:600; letter-spacing:0.05em; margin-bottom:8px; }
+  .rtext h3{ font-size:1.5rem; margin-bottom:12px; }
+  .rtext p{ color:#4a4438; font-size:0.98rem; }
+  @media(max-width:760px){
+    .prow, .prow.reverse{ grid-template-columns:1fr; }
+    .prow.reverse .rimg{ order:0; }
+  }
+
+  /* ================= GARDEN / WELLNESS (2 col simple) ================= */
+  .duo{ display:grid; grid-template-columns:1fr 1fr; gap:30px; }
+  .duo .card2{ background:var(--paper); border:1px solid var(--line); border-radius:16px; overflow:hidden; }
+  .duo .thumb2{ aspect-ratio:4/3; background-size:cover; background-position:center; background-color:#DCD3BE; }
+  .duo .body2{ padding:22px; }
+  .duo h3{ font-size:1.2rem; margin-bottom:8px; }
+  .duo p{ font-size:0.92rem; color:#4a4438; }
+  @media(max-width:700px){ .duo{ grid-template-columns:1fr; } }
+
+  /* ================= FOOTER CTA ================= */
+  .cta{ padding:80px 0; text-align:center; background:var(--sage-deep); color:var(--paper); }
+  .cta h2{ font-size:clamp(1.8rem,3.4vw,2.6rem); margin-bottom:14px; }
+  .cta p{ max-width:44ch; margin:0 auto 26px; opacity:0.9; }
+  .cta .btn{ background:var(--paper); color:var(--ink); }
+  .cta .btn:hover{ background:var(--rose); color:var(--paper); }
+
+  footer{ padding:36px 0; text-align:center; font-size:0.85rem; color:#4a4438; }
+
+  /* ================= WHATSAPP FLOTANTE ================= */
+  .wa-float{
+    position:fixed; right:22px; bottom:22px; z-index:80;
+    width:58px; height:58px; border-radius:50%;
+    background:#25D366; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 10px 26px rgba(24,20,15,0.28);
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .wa-float:hover{ transform:translateY(-3px) scale(1.04); box-shadow:0 14px 32px rgba(24,20,15,0.32); }
+  .wa-float svg{ width:30px; height:30px; }
+  @media(max-width:560px){
+    .wa-float{ right:16px; bottom:16px; width:52px; height:52px; }
+    .wa-float svg{ width:27px; height:27px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<nav>
+  <div class="wrap">
+    <a class="logo" href="https://hanariec.com/">
+      <img src="https://hanariec.com/images/hanarilogo.png" alt="Hanari">
+    </a>
+
+    <div class="navlinks" id="navlinks">
+      <a href="https://hanariec.com/coffee">Coffee</a>
+      <a class="active" href="https://hanariec.com/flower">Flower</a>
+      <a href="https://hanariec.com/journey">Journey</a>
+      <a href="https://hanariec.com/menu">Menú</a>
+      <a href="https://hanariec.com/retos">Retos</a>
+      <a href="https://hanariec.com/ubicacion">Ubícanos</a>
+    </div>
+
+    <button class="navtoggle" id="navtoggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="navlinks">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<header class="fhero">
+  <div class="wrap">
+    <div class="reveal in">
+      <div class="kicker">HANARI FLOWER SHOP</div>
+      <h1>Flores frescas con <em>el alma de Japón.</em></h1>
+      <p>Arreglos, cajas y detalles florales diseñados para cada ocasión — desde un regalo corporativo hasta un brunch para compartir.</p>
+    </div>
+    <div class="fhero-art reveal in"></div>
+  </div>
+</header>
+
+<!-- ===== REGALOS CORPORATIVOS ===== -->
+<section class="section" id="regalos-corporativos">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Para tu empresa</div>
+      <h2>Regalos Corporativos</h2>
+      <p>Cajas premium con flores preservadas, vino y una selección gourmet — ideales para clientes, equipos y fechas especiales.</p>
+    </div>
+
+    <div class="prow">
+      <div class="rimg" style="background-image:url('https://hanariec.com/images/flower/premium-gourmet-gift.jpg');"></div>
+      <div class="rtext">
+        <div class="kicker-sm">PREMIUM GOURMET GIFT</div>
+        <h3>Caja Gourmet Premium</h3>
+        <p>Caja con cierre magnetizado, decorada con flores preservadas, un vino exquisito, un artículo corporativo (jarra térmica) y una amplia selección de sabores gourmet.</p>
+      </div>
+    </div>
+
+    <div class="prow reverse">
+      <div class="rimg" style="background-image:url('https://hanariec.com/images/flower/premium-office-gift.jpg');"></div>
+      <div class="rtext">
+        <div class="kicker-sm">PREMIUM OFFICE GIFT</div>
+        <h3>Caja Office Premium</h3>
+        <p>Caja con cierre magnético acompañada de una decoración de flores preservadas, un vino exquisito, un artículo corporativo (jarra térmica) y una selección de snacks variados.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FLORAL BRUNCH ===== -->
+<section class="section alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Para regalar y compartir</div>
+      <h2>Floral Brunch</h2>
+      <p>Un arreglo floral acompañado de un brunch completo, presentado en una bandeja de madera rústica — el detalle perfecto para sorprender.</p>
+    </div>
+
+    <div class="pgrid stagger">
+      <div class="pcard reveal">
+        <div class="thumb" style="background-image:url('https://hanariec.com/images/flower/brunch-haru.jpg');"></div>
+        <div class="body">
+          <h3>Brunch Haru</h3>
+          <p>Incluye un arreglo floral (colores a elección), un globo temático, una bebida caliente a tu gusto (café o infusión), un sándwich artesanal de pan fresco (clásico o vegetariano), un yogurt de vainilla con açaí y una selección de frutos frescos. Todo presentado en una bandeja de madera rústica, ideal como regalo.</p>
+          <div class="swatches">Colores disponibles:
+            <span class="dot" style="background:#E08A2E;"></span>
+            <span class="dot" style="background:#2E5596;"></span>
+            <span class="dot" style="background:#E8C84A;"></span>
+            <span class="dot" style="background:#C24A3D;"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pcard reveal">
+        <div class="thumb" style="background-image:url('https://hanariec.com/images/flower/brunch-hana.jpg');"></div>
+        <div class="body">
+          <h3>Brunch Hana</h3>
+          <p>Incluye un arreglo floral (colores a elección), un globo temático, una bebida caliente a tu gusto, un sándwich artesanal de pan fresco, un yogurt de vainilla con açaí, una selección de frutos frescos, una porción de galletas y mermelada (sabor a elección). Presentado en una bandeja de madera rústica, ideal para regalar.</p>
+          <div class="swatches">Colores disponibles:
+            <span class="dot" style="background:#E08A2E;"></span>
+            <span class="dot" style="background:#2E5596;"></span>
+            <span class="dot" style="background:#E8C84A;"></span>
+            <span class="dot" style="background:#C24A3D;"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pcard reveal">
+        <div class="thumb" style="background-image:url('https://hanariec.com/images/flower/brunch-hoshi.jpg');"></div>
+        <div class="body">
+          <h3>Brunch Hoshi</h3>
+          <p>Incluye un arreglo floral (colores a elección), un globo temático, una bebida caliente a tu gusto, un sándwich artesanal, una porción de brownie, un yogurt de vainilla con açaí, una selección de frutos frescos, galletas, jugo y mermelada (sabores a elección). Presentado en una bandeja de madera rústica, ideal como regalo.</p>
+          <div class="swatches">Colores disponibles:
+            <span class="dot" style="background:#E08A2E;"></span>
+            <span class="dot" style="background:#2E5596;"></span>
+            <span class="dot" style="background:#E8C84A;"></span>
+            <span class="dot" style="background:#C24A3D;"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-note reveal">✽ Elige entre nuestros colores o solicita el de tu preferencia.</div>
+  </div>
+</section>
+
+<!-- ===== ARREGLOS POR OCASIÓN ===== -->
+<section class="section">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Todos los días</div>
+      <h2>Arreglos por Ocasión</h2>
+      <p>Diseños frescos y únicos para cada fecha, celebración y estado de ánimo.</p>
+    </div>
+
+    <div class="prow">
+      <div class="rimg" style="background-image:url('https://hanariec.com/images/flower/bouquet-floral.jpg');"></div>
+      <div class="rtext">
+        <div class="kicker-sm">BOUQUET FLORAL</div>
+        <h3>Bouquet Floral</h3>
+        <p>Fresco, elegante y lleno de intención. Cada bouquet combina colores y formas para expresar emociones de manera natural. Diseñado para enamorar, celebrar o simplemente sorprender. Un detalle que habla por sí solo.</p>
+      </div>
+    </div>
+
+    <div class="prow reverse">
+      <div class="rimg" style="background-image:url('https://hanariec.com/images/flower/classics.jpg');"></div>
+      <div class="rtext">
+        <div class="kicker-sm">CLASSICS</div>
+        <h3>Classics</h3>
+        <p>Creamos diseños únicos para fechas especiales, celebraciones y eventos durante todo el año. Cada diseño se inspira en la emoción del momento, ya sea con flores naturales o preservadas. Renovamos constantemente nuestras propuestas para que siempre encuentres algo especial para cada ocasión.</p>
+      </div>
+    </div>
+
+    <div class="prow">
+      <div class="rimg" style="background-image:url('https://hanariec.com/images/flower/seasonal-gifts.jpg');"></div>
+      <div class="rtext">
+        <div class="kicker-sm">SEASONAL GIFTS</div>
+        <h3>Regalos de Temporada</h3>
+        <p>Diseños únicos inspirados en las fechas y celebraciones de cada temporada. Combinamos flores naturales o preservadas con detalles pensados para sorprender, siempre renovando nuestras propuestas a lo largo del año.</p>
+      </div>
+    </div>
+
+    <div class="sec-note reveal">✽ Arreglos frescos cada día, consulta disponibilidad diaria.</div>
+  </div>
+</section>
+
+<!-- ===== CAJAS FLORALES ===== -->
+<section class="section alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Listas para enviar</div>
+      <h2>Cajas Florales</h2>
+      <p>Compactas, elegantes y con estilo — perfectas para un envío rápido o un detalle de último momento.</p>
+    </div>
+
+    <div class="pgrid stagger">
+      <div class="pcard reveal">
+        <div class="thumb" style="background-image:url('https://hanariec.com/images/flower/rustic-floral-pave.jpg');"></div>
+        <div class="body">
+          <h3>Rustic Floral Pavé</h3>
+          <p>Compacto, elegante y listo para llevar. Nuestros pavés son la opción perfecta cuando necesitas enviar flores pero con estilo. Ideal para regalos o detalles de último momento que sorprenden.</p>
+        </div>
+      </div>
+
+      <div class="pcard reveal">
+        <div class="thumb" style="background-image:url('https://hanariec.com/images/flower/mini-gourmet.jpg');"></div>
+        <div class="body">
+          <h3>Mini Gourmet</h3>
+          <p>Un detalle listo para sorprender: flores frescas combinadas con deliciosos snacks. Práctico, elegante y perfecto para regalar en cualquier ocasión. Ideal para llevar o enviar... ¡y en poco tiempo!</p>
+        </div>
+      </div>
+
+      <div class="pcard reveal">
+        <div class="thumb" style="background-image:url('https://hanariec.com/images/flower/mistery-gourmet.jpg');"></div>
+        <div class="body">
+          <h3>Mistery Gourmet</h3>
+          <p>Flores, snacks y sorpresas elegidas por nosotros para deleitar a quien las recibe. Tú eliges la ocasión y nosotros nos encargamos del resto. Ideal para quienes disfrutan lo inesperado... y lo hermoso.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-note reveal">✽ Disponible para envíos dentro de la ciudad de Quito.</div>
+  </div>
+</section>
+
+<!-- ===== JARDÍN Y BIENESTAR ===== -->
+<section class="section">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Un toque especial</div>
+      <h2>Jardín y Bienestar</h2>
+      <p>Plantas y detalles vivos que suman armonía y carácter a cualquier regalo.</p>
+    </div>
+
+    <div class="duo stagger">
+      <div class="card2 reveal">
+        <div class="thumb2" style="background-image:url('https://hanariec.com/images/flower/orchids.jpg');"></div>
+        <div class="body2">
+          <h3>Orquídeas</h3>
+          <p>Un detalle que marca la diferencia. Incorporamos orquídeas naturales en nuestras creaciones para dar un aire de sofisticación y belleza única. Perfectas para realzar cualquier regalo y convertirlo en algo realmente especial.</p>
+        </div>
+      </div>
+
+      <div class="card2 reveal">
+        <div class="thumb2" style="background-image:url('https://hanariec.com/images/flower/bonsais.jpg');"></div>
+        <div class="body2">
+          <h3>Bonsáis</h3>
+          <p>Pequeños, elegantes y llenos de vida. Sumamos bonsáis como un toque especial a nuestras creaciones, aportando armonía y carácter. Una forma sutil y diferente de transformar cualquier regalo en algo memorable.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">Hanari Flower Shop · www.hanariec.com · @hanari_ec</div>
+</footer>
+
+<a class="wa-float" href="https://wa.me/593980161641" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+  <svg viewBox="0 0 32 32" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16.004 3C9.377 3 4 8.373 4 15c0 2.34.66 4.523 1.804 6.383L4 29l7.803-1.77A11.94 11.94 0 0 0 16.004 27C22.63 27 28 21.627 28 15S22.63 3 16.004 3Zm0 21.75c-2.02 0-3.9-.57-5.5-1.56l-.394-.235-4.63 1.05 1.02-4.51-.257-.408A9.71 9.71 0 0 1 4.75 15c0-6.203 5.05-11.25 11.254-11.25S27.257 8.797 27.257 15 22.208 24.75 16.004 24.75Zm5.53-7.815c-.303-.152-1.79-.883-2.067-.984-.277-.101-.478-.152-.68.152-.202.303-.782.984-.958 1.187-.176.202-.353.227-.655.076-.303-.152-1.28-.472-2.438-1.505-.902-.804-1.51-1.798-1.687-2.1-.176-.303-.019-.467.133-.618.137-.136.303-.353.454-.53.152-.176.202-.303.303-.505.101-.202.05-.379-.025-.53-.076-.152-.68-1.64-.933-2.246-.246-.59-.496-.51-.68-.52-.176-.008-.379-.01-.58-.01-.202 0-.53.076-.807.379-.277.303-1.058 1.034-1.058 2.522 0 1.488 1.083 2.926 1.234 3.128.152.202 2.132 3.256 5.166 4.565.722.312 1.285.498 1.725.638.725.23 1.385.198 1.906.12.582-.087 1.79-.732 2.043-1.44.253-.707.253-1.313.177-1.44-.076-.126-.278-.202-.58-.353Z"/>
+  </svg>
+</a>
+
+<script>
+  const navtoggle = document.getElementById('navtoggle');
+  const navlinks = document.getElementById('navlinks');
+  navtoggle.addEventListener('click', () => {
+    const isOpen = navlinks.classList.toggle('open');
+    navtoggle.classList.toggle('open', isOpen);
+    navtoggle.setAttribute('aria-expanded', isOpen);
+  });
+  navlinks.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      navlinks.classList.remove('open');
+      navtoggle.classList.remove('open');
+      navtoggle.setAttribute('aria-expanded', 'false');
+    });
+  });
+
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting){
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  revealEls.forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
