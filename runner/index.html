@@ -20,9 +20,10 @@ html, body {
 
 canvas {
   display: block;
-  width: 100vw;
-  /* Antes: height: 65vh (dejaba un hueco negro hasta la barra inferior) */
-  height: calc(100vh - 70px); /* llena todo hasta la barra de abajo */
+  /* El tamaño real (width/height) se fija por JS en px, no con vh.
+     vh en móvil se calcula con la barra de direcciones oculta, y eso
+     hacía que el canvas se dibujara más alto de lo que en verdad se
+     ve, tapando el suelo/panda detrás de la barra inferior. */
   background: #111;
 }
 
@@ -53,16 +54,6 @@ canvas {
   width: 85%;
   max-width: 450px;
   box-sizing: border-box;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  canvas {
-    height: 65vh; /* en PC se mantiene igual que antes */
-  }
-  #startBar {
-    top: 65vh;
-    bottom: auto;
-  }
 }
 
 #scoreBox {
@@ -112,7 +103,7 @@ const startBar = document.getElementById("startBar");
 const isPC = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
 /* 🔊 AUDIO LOCAL */
-const music = new Audio("../retos/dino.mp3");
+const music = new Audio("../retos/timber.mp3");
 music.loop = true;
 music.volume = 0.25;
 music.setAttribute("playsinline", "");
@@ -135,14 +126,35 @@ function stepVibration() {
   }
 }
 
-/* 📐 RESIZE OPTIMIZADO */
+/* 📐 RESIZE OPTIMIZADO — todo en px reales (window.innerHeight),
+   nunca vh, para que el canvas nunca quede más alto de lo que
+   realmente se ve (evita que el suelo/panda quede tapado por la barra) */
+const BAR_HEIGHT = 70;
+
 function resize() {
-  canvas.width = window.innerWidth;
-  // Antes: window.innerHeight * 0.65 (no coincidía con el hueco negro)
-  canvas.height = isPC ? window.innerHeight * 0.65 : (window.innerHeight - 70);
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const canvasH = isPC ? h * 0.65 : (h - BAR_HEIGHT);
+
+  canvas.style.width = w + "px";
+  canvas.style.height = canvasH + "px";
+  canvas.width = w;
+  canvas.height = canvasH;
+
+  if (isPC) {
+    startBar.style.bottom = "auto";
+    startBar.style.top = canvasH + "px";
+  } else {
+    startBar.style.top = "auto";
+    startBar.style.bottom = "0px";
+  }
 }
 resize();
 window.addEventListener("resize", resize);
+window.addEventListener("orientationchange", resize);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", resize);
+}
 
 /* 🖼️ PRECARGADOR DE IMÁGENES CON PROMESAS */
 function loadImage(path) {
@@ -183,6 +195,54 @@ let backgrounds = [];
 let sprites = {};
 let assetsLoaded = false;
 
+/* 🔒 BLOQUEO DE 1 SEMANA TRAS GANAR (persiste con localStorage) */
+const WIN_LOCK_KEY = "pandaRunnerLockedUntil";
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+let locked = false;
+
+function getLockRemaining() {
+  const until = parseInt(localStorage.getItem(WIN_LOCK_KEY) || "0", 10);
+  const remaining = until - Date.now();
+  return remaining > 0 ? remaining : 0;
+}
+
+function formatRemaining(ms) {
+  const totalHours = Math.ceil(ms / (60 * 60 * 1000));
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+  if (days > 0) return `${days}d ${hours}h`;
+  return `${hours}h`;
+}
+
+function showLockMessage() {
+  const remaining = getLockRemaining();
+  startBar.classList.add("centered");
+  startBar.style.display = "flex";
+  startBar.innerHTML = `
+    🏆 ¡Ya ganaste!<br>
+    Podrás volver a jugar en <b>${formatRemaining(remaining)}</b>
+  `;
+}
+
+function refreshLockState() {
+  const remaining = getLockRemaining();
+  if (remaining > 0) {
+    locked = true;
+    showLockMessage();
+  } else {
+    if (locked) {
+      // se acaba de desbloquear: volver al mensaje normal
+      locked = false;
+      startBar.classList.remove("centered");
+      startBar.innerText = assetsLoaded
+        ? (isPC ? "TOCAR EN CUALQUIER PARTE / SPACE / ENTER" : "TOCAR EN CUALQUIER PARTE")
+        : "CARGANDO RECURSOS...";
+    }
+    locked = false;
+  }
+}
+setInterval(refreshLockState, 60 * 1000); // revisa cada minuto si ya se puede jugar
+
 async function preloadAssets() {
   const bgPaths = isPC ? pcBGPaths : mobileBGPaths;
 
@@ -197,7 +257,13 @@ async function preloadAssets() {
   sprites = Object.fromEntries(loadedSpriteEntries);
 
   assetsLoaded = true;
-  startBar.innerText = "TOCAR EN CUALQUIER PARTE / SPACE / ENTER";
+
+  if (getLockRemaining() > 0) {
+    locked = true;
+    showLockMessage();
+  } else {
+    startBar.innerText = "TOCAR EN CUALQUIER PARTE / SPACE / ENTER";
+  }
 }
 preloadAssets();
 
@@ -254,6 +320,11 @@ function drawBG() {
 
 function showVictory() {
   const code = "HC" + Math.floor(Math.random() * 90000 + 10000);
+
+  // Bloquear el juego por 1 semana desde ahora
+  localStorage.setItem(WIN_LOCK_KEY, (Date.now() + WEEK_MS).toString());
+  locked = true;
+
   startBar.classList.add("centered");
   startBar.style.display = "flex";
   startBar.innerHTML = `
@@ -362,6 +433,11 @@ function jump() {
 /* 🎯 CONTROL GLOBAL DE ENTRADA */
 function handleGlobalInput(e) {
   if (!assetsLoaded) return;
+  if (locked) {
+    showLockMessage(); // por si el toque coincide justo con el minuto que ya se desbloqueó
+    if (getLockRemaining() <= 0) refreshLockState();
+    return;
+  }
 
   if (!gameStarted) {
     resetGame();
