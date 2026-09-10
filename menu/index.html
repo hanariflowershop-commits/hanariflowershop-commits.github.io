@@ -255,73 +255,66 @@
             transform: translateX(-30px);
         }
 
+        .nav-actions{ display: flex; align-items: center; gap: 12px; }
+
         /* ========================================================
            BOTÓN DISCRETO DE CONTROL DE MÚSICA
            ======================================================== */
         #btnMusica {
-            position: fixed;
-            top: 84px;
-            right: 20px;
-            z-index: 100;
-            background: #8B4513;
-            color: #f5f5dc;
-            border: 2px solid #b8860b;
+            background: var(--rose-deep);
+            color: var(--paper);
+            border: none;
             border-radius: 50%;
-            width: 42px;
-            height: 42px;
-            font-size: 1.1rem;
+            width: 36px;
+            height: 36px;
+            font-size: 1rem;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.35);
-            transition: transform 0.2s, opacity 0.5s;
-            opacity: 0; /* Aparece solo cuando empiece la música */
-            pointer-events: none;
+            box-shadow: 0 3px 8px rgba(24,20,15,0.2);
+            transition: transform 0.2s ease, background 0.2s ease;
+            opacity: 0.9;
+            flex-shrink: 0;
         }
 
-        #btnMusica.visible {
-            opacity: 0.85;
-            pointer-events: auto;
-        }
-
-        #btnMusica.visible:hover {
+        #btnMusica:hover {
             opacity: 1;
-            transform: scale(1.1);
+            transform: scale(1.08);
+            background: var(--cobalt);
         }
 
         /* ========================================================
            BOTÓN "HACER PEDIDO" -> menu-ordenes
            ======================================================== */
         #btnPedido {
-            position: fixed;
-            top: 84px;
-            left: 20px;
-            z-index: 100;
             display: flex;
             align-items: center;
-            gap: 8px;
-            background: linear-gradient(to bottom, #8B4513, #5c2c16);
-            color: #f5f5dc;
-            border: 2px solid #b8860b;
+            gap: 6px;
+            background: var(--sage-deep, #586B4E);
+            color: var(--paper);
             border-radius: 999px;
-            padding: 10px 18px 10px 14px;
+            padding: 9px 16px;
             font-family: 'Zen Kaku Gothic New', Arial, sans-serif;
-            font-size: 0.92rem;
-            font-weight: bold;
-            letter-spacing: 0.5px;
+            font-size: 0.88rem;
+            font-weight: 600;
             text-decoration: none;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
-            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.4s ease;
-            opacity: 0.92;
+            box-shadow: 0 3px 8px rgba(24,20,15,0.2);
+            transition: transform 0.2s ease, background 0.2s ease;
+            white-space: nowrap;
         }
 
         #btnPedido:hover {
-            opacity: 1;
-            transform: translateY(-2px) scale(1.03);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+            background: var(--rose-deep);
+            transform: translateY(-1px);
         }
 
         #btnPedido .icono {
-            font-size: 1.05rem;
+            font-size: 1rem;
+        }
+
+        @media(max-width:480px){
+            .nav-actions{ gap: 8px; }
+            #btnPedido{ padding: 8px 12px; font-size: 0.78rem; gap: 4px; }
+            #btnPedido .icono{ font-size: 0.92rem; }
         }
 
         /* ========================================================
@@ -388,20 +381,6 @@
                 opacity: 0;
                 transform: rotate(-90deg) translateX(-20px);
             }
-
-            #btnPedido {
-                top: 68px;
-                left: 12px;
-                padding: 8px 14px 8px 12px;
-                font-size: 0.8rem;
-            }
-
-            #btnMusica {
-                top: 68px;
-                right: 12px;
-                width: 38px;
-                height: 38px;
-            }
         }
     </style>
 </head>
@@ -423,9 +402,15 @@
                 <a href="https://hanariec.com/ubicacion">Ubícanos</a>
             </div>
 
-            <button class="navtoggle" id="navtoggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="navlinks">
-                <span></span><span></span><span></span>
-            </button>
+            <div class="nav-actions">
+                <button id="btnMusica" onclick="toggleControlMusica()" title="Música de fondo">🔊</button>
+                <a id="btnPedido" href="https://hanariec.com/menu-ordenes" title="Hacer un pedido">
+                    <span class="icono">🛒</span><span class="txt">Hacer Pedido</span>
+                </a>
+                <button class="navtoggle" id="navtoggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="navlinks">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
         </div>
     </nav>
 
@@ -433,14 +418,6 @@
     <audio id="musicaFondo" loop preload="auto">
         <source src="musica-fondo.mp3" type="audio/mpeg">
     </audio>
-
-    <!-- Botón discreto para pausar o volver a activar el sonido -->
-    <button id="btnMusica" onclick="toggleControlMusica()" title="Música de fondo">🔊</button>
-
-    <!-- Botón para ir a la página de pedidos -->
-    <a id="btnPedido" href="https://hanariec.com/menu-ordenes" title="Hacer un pedido">
-        <span class="icono">🛒</span> Hacer Pedido
-    </a>
 
     <main class="menu-main">
       <div class="pergamino-container">
@@ -467,6 +444,24 @@
     </main>
 
     <script>
+        // ---- Menú hamburguesa (móvil) ----
+        const navtoggle = document.getElementById('navtoggle');
+        const navlinks = document.getElementById('navlinks');
+
+        navtoggle.addEventListener('click', () => {
+            const isOpen = navlinks.classList.toggle('open');
+            navtoggle.classList.toggle('open', isOpen);
+            navtoggle.setAttribute('aria-expanded', isOpen);
+        });
+
+        navlinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navlinks.classList.remove('open');
+                navtoggle.classList.remove('open');
+                navtoggle.setAttribute('aria-expanded', 'false');
+            });
+        });
+
         let pzInstance = null;
         let primeraVezMusica = true;
 
@@ -489,7 +484,6 @@
 
             if (primeraVezMusica) {
                 audio.play().then(() => {
-                    btn.classList.add('visible'); // Aparece el botón de silencio en la esquina
                     primeraVezMusica = false;
                 }).catch(err => {
                     console.log("Audio bloqueado por el navegador hasta interactuar:", err);
