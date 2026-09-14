@@ -116,6 +116,41 @@ canvas {
   font-weight: bold;
   color: #111;
 }
+
+/* 🩹 BARRA DE VIDA (NUEVO) */
+#healthBox {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8px 14px;
+  border-radius: 20px;
+  z-index: 25;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+#healthIcon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+#healthBarBg {
+  width: 120px;
+  height: 14px;
+  background: #333;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#healthBarFill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #4CAF50, #8BC34A);
+  transition: width 0.15s ease, background 0.2s ease;
+}
 </style>
 </head>
 
@@ -129,6 +164,14 @@ canvas {
     <img id="scoreIcon" src="../retos/Caraiconopanda.png" alt="Panda">
     <span id="score">0</span>
   </div>
+
+  <!-- 🩹 BARRA DE VIDA (NUEVO) -->
+  <div id="healthBox">
+    <span id="healthIcon">❤️</span>
+    <div id="healthBarBg">
+      <div id="healthBarFill"></div>
+    </div>
+  </div>
 </div>
 
 <div id="bottomBarSpace"></div>
@@ -139,13 +182,14 @@ const ctx = canvas.getContext("2d");
 const scoreText = document.getElementById("score");
 const startBar = document.getElementById("startBar");
 const container = document.getElementById("gameContainer");
+const healthBarFill = document.getElementById("healthBarFill"); // NUEVO
 
 const isPC = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
-/* 🔊 AUDIO LOCAL */
+/* 🔊 AUDIO LOCAL — volumen nivelado igual que el resto de los juegos */
 const music = new Audio("musictank.mp3");
 music.loop = true;
-music.volume = 0.3;
+music.volume = 1.0;
 music.setAttribute("playsinline", "");
 
 function playMusic() {
@@ -218,13 +262,38 @@ let tank = {
   w: 130,
   h: 110,
   state: "normal",
-  shootTimer: 0
+  shootTimer: 0,
+  maxHp: 100,   // NUEVO
+  hp: 100       // NUEVO
 };
 
 /* 🎯 MIRA Y DISPARO */
 let crosshair = { x: -100, y: -100, active: false };
 let effects = [];
 let enemies = [];
+
+/* 💥 EFECTO DE PANTALLA AL RECIBIR DAÑO (NUEVO) */
+let screenFlash = 0;
+
+/* 📈 DIFICULTAD PROGRESIVA SEGÚN PUNTOS (NUEVO) */
+function getDifficultyLevel() {
+  return Math.floor(score / 100); // sube un nivel cada 100 puntos
+}
+
+/* 🩹 ACTUALIZAR BARRA DE VIDA VISUAL (NUEVO) */
+function updateHealthBar() {
+  const pct = Math.max(0, Math.min(100, (tank.hp / tank.maxHp) * 100));
+  healthBarFill.style.width = pct + "%";
+  if (pct > 50) {
+    healthBarFill.style.background = "linear-gradient(90deg, #4CAF50, #8BC34A)";
+  } else if (pct > 25) {
+    healthBarFill.style.background = "linear-gradient(90deg, #FF9800, #FFC107)";
+  } else {
+    healthBarFill.style.background = "linear-gradient(90deg, #D32F2F, #F44336)";
+  }
+}
+
+let framesSinceSpawn = 0; // NUEVO — controla el spawn con intervalo dinámico según dificultad
 
 function resetGame() {
   gameStarted = true;
@@ -233,12 +302,17 @@ function resetGame() {
   score = 0;
   frame = 0;
   bgScrollX = 0;
+  framesSinceSpawn = 0; // NUEVO
+  screenFlash = 0;      // NUEVO
 
   tank.w = 130;
   tank.h = 110;
   tank.x = canvas.width / 2 - tank.w / 2;
   tank.y = canvas.height - tank.h;
   tank.state = "normal";
+  tank.maxHp = 100;     // NUEVO
+  tank.hp = 100;        // NUEVO
+  updateHealthBar();    // NUEVO
 
   enemies = [];
   effects = [];
@@ -254,8 +328,10 @@ function resetGame() {
 
 /* 👾 GENERACIÓN Y POSICIONAMIENTO REALISTA DE ENEMIGOS */
 function spawnEnemy() {
-  if (enemies.length >= 4 || gameWin) return;
-  
+  // NUEVO: el máximo de enemigos simultáneos crece con la dificultad
+  const maxEnemies = Math.min(7, 4 + Math.floor(getDifficultyLevel() / 2));
+  if (enemies.length >= maxEnemies || gameWin) return;
+
   const spriteTypes = ["charniLeft", "charniRight", "charniBack", "charniWin", "charniCover"];
   const selectedType = spriteTypes[Math.floor(Math.random() * spriteTypes.length)];
   const isCover = selectedType === "charniCover";
@@ -295,6 +371,10 @@ function spawnEnemy() {
   const baseW = isCover ? 75 : 58;
   const baseH = isCover ? 70 : 78;
 
+  // NUEVO: los enemigos disparan más seguido a medida que sube la dificultad
+  const diff = getDifficultyLevel();
+  const initialCooldown = Math.max(20, Math.floor(Math.random() * 60) + 40 - diff * 3);
+
   enemies.push({
     x: enemyX,
     y: enemyY,
@@ -303,7 +383,7 @@ function spawnEnemy() {
     isCover: isCover,
     baseSprite: selectedType,
     hp: isCover ? 2 : 1,
-    shootCooldown: Math.floor(Math.random() * 60) + 40,
+    shootCooldown: initialCooldown,
     state: "idle"
   });
 }
@@ -321,6 +401,19 @@ function showVictory() {
     🎁 Ganaste un Hana Café<br>
     🎟 Código: <b>${code}</b><br>
     <small>Toca para volver a jugar</small>
+  `;
+}
+
+/* 💥 DERROTA POR PÉRDIDA DE VIDA (NUEVO) */
+function showDefeat() {
+  music.pause();
+  vibrate([150, 80, 150, 80, 250]);
+  startBar.classList.add("centered");
+  startBar.style.display = "flex";
+  startBar.innerHTML = `
+    💥 ¡TANQUE DESTRUIDO!<br>
+    Alcanzaste ${score} puntos<br><br>
+    <small>Toca para volver a intentarlo</small>
   `;
 }
 
@@ -448,24 +541,42 @@ function drawCrosshair() {
   }
 }
 
+/* 💥 DESTELLO ROJO DE PANTALLA AL RECIBIR DAÑO (NUEVO) */
+function drawScreenFlash() {
+  if (screenFlash > 0) {
+    ctx.fillStyle = `rgba(255, 0, 0, ${(screenFlash / 6) * 0.35})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+}
+
 /* 🔄 UPDATE */
 function update() {
   if (!gameStarted || gameOver || gameWin) return;
 
   frame++;
 
+  if (screenFlash > 0) screenFlash--; // NUEVO
+
   if (tank.shootTimer > 0) {
     tank.shootTimer--;
     if (tank.shootTimer === 0) tank.state = "normal";
   }
 
-  if (frame % 75 === 0) spawnEnemy();
+  // NUEVO: intervalo de aparición dinámico — más rápido según dificultad
+  framesSinceSpawn++;
+  const diffLevel = getDifficultyLevel();
+  const spawnInterval = Math.max(30, 75 - diffLevel * 4);
+  if (framesSinceSpawn >= spawnInterval) {
+    spawnEnemy();
+    framesSinceSpawn = 0;
+  }
 
   enemies.forEach(e => {
     e.shootCooldown--;
     if (e.shootCooldown <= 0) {
       e.state = "shooting";
-      e.shootCooldown = 90 + Math.random() * 45;
+      // NUEVO: recargan más rápido a medida que sube la dificultad
+      e.shootCooldown = Math.max(45, (90 - diffLevel * 5)) + Math.random() * 45;
 
       effects.push({
         type: "flashPistol",
@@ -480,6 +591,21 @@ function update() {
       });
 
       vibrate(25);
+
+      // NUEVO: el disparo del enemigo ahora sí puede hacer daño real
+      const hitChance = Math.min(0.85, 0.55 + diffLevel * 0.03);
+      if (Math.random() < hitChance) {
+        const dmg = 6 + diffLevel * 1.2;
+        tank.hp = Math.max(0, tank.hp - dmg);
+        updateHealthBar();
+        screenFlash = 6;
+        vibrate(40);
+
+        if (tank.hp <= 0 && !gameOver && !gameWin) {
+          gameOver = true;
+          showDefeat();
+        }
+      }
     } else if (e.shootCooldown < 70 && e.state === "shooting") {
       e.state = "idle";
     }
@@ -493,6 +619,7 @@ function draw() {
   drawTank();
   drawEffects();
   drawCrosshair();
+  drawScreenFlash(); // NUEVO
 }
 
 function loop() {
@@ -542,6 +669,7 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
+updateHealthBar(); // NUEVO — pinta la barra llena antes de iniciar
 requestAnimationFrame(loop);
 </script>
 
