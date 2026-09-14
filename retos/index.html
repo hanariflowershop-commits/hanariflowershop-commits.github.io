@@ -260,6 +260,53 @@ footer span {
   color: var(--rose-deep);
   font-weight: 700;
 }
+
+/* ================= BOTÓN TÉRMINOS Y CONDICIONES ================= */
+.terms-fab{
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 60px;
+  padding: 10px 6px 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(24, 20, 15, 0.18);
+  text-decoration: none;
+  color: var(--rose-deep);
+  transition: transform .15s ease, box-shadow .15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.terms-fab svg{
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.terms-fab .terms-label{
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  color: var(--ink);
+  text-align: center;
+}
+.terms-fab:active{ transform: scale(0.94); }
+@media (hover: hover){
+  .terms-fab:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px rgba(24, 20, 15, 0.24);
+  }
+}
+/* Oculto mientras la pantalla de inicio está activa */
+body.overlay-active .terms-fab{
+  opacity: 0;
+  pointer-events: none;
+}
 </style>
 </head>
 
@@ -334,6 +381,19 @@ footer span {
 <footer>
   <p>Hana Games &copy; <span>hanariec.com</span></p>
 </footer>
+
+<!-- Botón flotante: Términos y Condiciones -->
+<a href="https://hanariec.com/retos/terminos" class="terms-fab" aria-label="Ver Términos y Condiciones">
+  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="11" y="9" width="26" height="30" rx="2.5" stroke="currentColor" stroke-width="2.2"/>
+    <circle cx="11" cy="9" r="3.4" stroke="currentColor" stroke-width="2.2"/>
+    <circle cx="11" cy="39" r="3.4" stroke="currentColor" stroke-width="2.2"/>
+    <line x1="17" y1="17" x2="31" y2="17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="17" y1="23.5" x2="31" y2="23.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="17" y1="30" x2="25" y2="30" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+  </svg>
+  <span class="terms-label">Términos y&nbsp;Condiciones</span>
+</a>
 
 <script>
   // ---- Menú hamburguesa (móvil) ----
