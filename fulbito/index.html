@@ -280,6 +280,13 @@ let ball = {
 /* 🕹️ CONTROLES */
 let keys = { left: false, right: false };
 
+/* 📈 DIFICULTAD PROGRESIVA SEGÚN PUNTOS (NUEVO)
+   Sube un nivel cada 8 dominadas; los topes (Math.min) evitan que
+   el juego se vuelva literalmente imposible en partidas muy largas. */
+function getDifficultyLevel() {
+  return Math.floor(score / 8);
+}
+
 function resetGame() {
   gameStarted = true;
   gameOver = false;
@@ -297,6 +304,7 @@ function resetGame() {
   ball.y = canvas.height / 3;
   ball.vx = (Math.random() - 0.5) * 4;
   ball.vy = -3;
+  ball.gravity = 0.42; // NUEVO: se reinicia al valor base en cada partida
 
   scoreText.innerText = "0";
 
@@ -398,6 +406,9 @@ function update() {
     showVictory();
   }
 
+  // NUEVO: nivel de dificultad actual según el puntaje
+  const diffLevel = getDifficultyLevel();
+
   /* Movimiento horizontal Panda */
   if (keys.left) {
     panda.x -= panda.speed;
@@ -415,6 +426,8 @@ function update() {
   if (panda.jumpAnimTimer > 0) panda.jumpAnimTimer--;
 
   /* Física del Balón */
+  // NUEVO: la gravedad sube progresivamente (el balón cae cada vez más rápido), con techo en 0.85
+  ball.gravity = Math.min(0.85, 0.42 + diffLevel * 0.035);
   ball.vy += ball.gravity;
   ball.x += ball.vx;
   ball.y += ball.vy;
@@ -431,7 +444,8 @@ function update() {
   }
 
   /* Colisión con Panda */
-  const hitBoxPadding = 12;
+  // NUEVO: el "hitbox" efectivo se va reduciendo con la dificultad (más padding = área útil más chica), con techo en 26
+  const hitBoxPadding = Math.min(26, 12 + diffLevel * 1.8);
   const px = panda.x + hitBoxPadding;
   const py = panda.y + hitBoxPadding;
   const pw = panda.w - hitBoxPadding * 2;
@@ -444,10 +458,26 @@ function update() {
     ball.y - ball.radius < py + ph &&
     ball.vy > 0
   ) {
-    ball.vy = -15.5 - Math.min(score * 0.1, 2);
-    
+    // Rebote base (igual que antes)
+    let bounceVy = -15.5 - Math.min(score * 0.1, 2);
+
+    // NUEVO: 1 de cada 3 golpes, el rebote es errático desde el inicio
+    // del juego (no depende de la dificultad) — a veces sube muy poco,
+    // a veces sube muchísimo, haciendo la trayectoria impredecible.
+    if (Math.random() < (1 / 3)) {
+      if (Math.random() < 0.5) {
+        bounceVy *= 0.45; // rebote muy corto/flojo
+      } else {
+        bounceVy *= 1.55; // rebote muy alto/fuerte
+      }
+    }
+
+    ball.vy = bounceVy;
+
+    // NUEVO: el rebote errático también le mete un poco más de caos lateral
     const hitPoint = (ball.x - (panda.x + panda.w / 2)) / (panda.w / 2);
-    ball.vx = hitPoint * 7.5;
+    const sideForce = Math.min(11, 7.5 + diffLevel * 0.35);
+    ball.vx = hitPoint * sideForce;
 
     panda.jumpAnimTimer = 22;
     vibrate(15);
