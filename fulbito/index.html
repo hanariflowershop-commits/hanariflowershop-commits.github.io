@@ -183,10 +183,10 @@ const container = document.getElementById("gameContainer");
 
 const isPC = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
-/* 🔊 AUDIO LOCAL CON VOLUMEN MÁS ALTO */
+/* 🔊 AUDIO LOCAL — volumen nivelado igual que el resto de los juegos */
 const music = new Audio("../retos/fulbo.mp3");
 music.loop = true;
-music.volume = 0.85; /* Se subió el volumen de 0.25 a 0.85 */
+music.volume = 1.0;
 music.setAttribute("playsinline", "");
 
 function playMusic() {
