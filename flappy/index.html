@@ -175,7 +175,7 @@ let assetsLoaded = false;
 
 async function preloadAssets() {
   const bgPaths = isPC ? pcBGPaths : mobileBGPaths;
-  
+
   const [loadedBamboos, loadedBGs, loadedSpriteEntries] = await Promise.all([
     Promise.all(bambooPaths.map(loadImage)),
     Promise.all(bgPaths.map(loadImage)),
@@ -194,11 +194,23 @@ preloadAssets();
 /* 🎮 ESTADO DEL JUEGO */
 let gameStarted = false, gameOver = false, gameWin = false, score = 0;
 let pipes = [], speed = 2.8, frame = 0;
+let framesSincePipe = 0; // NUEVO — reemplaza el "frame % pipeInterval" fijo por un intervalo dinámico
 
-/* 📏 TAMAÑOS Y DISTANCIAS (+12% AUMENTO) */
-const pipeGap = 235; 
-const pipeInterval = 120; 
-const pipeWidth = 73; 
+/* 📏 TAMAÑOS Y DISTANCIAS BASE (+12% AUMENTO original) */
+const pipeGapBase = 235;
+const pipeIntervalBase = 120;
+const pipeWidth = 73;
+
+/* 📈 DIFICULTAD PROGRESIVA SEGÚN PUNTOS (NUEVO)
+   Sube un nivel cada 10 puntos. Todos los valores tienen un tope
+   (Math.max/Math.min) para que el juego siga siendo posible en
+   partidas largas, no imposible. */
+function getDifficultyLevel() {
+  return Math.floor(score / 10);
+}
+
+// NUEVO: puntaje necesario para ganar (antes era 50, ahora más retador pero no exagerado)
+const WIN_SCORE = 120;
 
 let panda = {
   x: 80,
@@ -218,6 +230,7 @@ function resetGame() {
   score = 0;
   speed = 2.8;
   frame = 0;
+  framesSincePipe = 0; // NUEVO
   pipes = [];
   panda.y = canvas.height / 2 - panda.h / 2;
   panda.vy = 0;
@@ -235,7 +248,7 @@ function resetGame() {
 }
 
 function getBGIndex() {
-  if (score >= 50) return 5;
+  if (score >= WIN_SCORE) return 5;
   return Math.floor(score / 10) % 5;
 }
 
@@ -348,7 +361,22 @@ function update() {
   }
 
   frame++;
-  speed = 2.8 + Math.floor(score / 10) * 0.2;
+  framesSincePipe++; // NUEVO
+
+  // NUEVO: nivel de dificultad actual según el puntaje
+  const diffLevel = getDifficultyLevel();
+
+  // Velocidad: sube un poco más agresivo que antes, con techo en 6.5
+  speed = Math.min(6.5, 2.8 + diffLevel * 0.3);
+
+  // NUEVO: la separación entre tubos (gap) se va cerrando, con piso en 150px
+  const pipeGap = Math.max(150, pipeGapBase - diffLevel * 6);
+
+  // NUEVO: los tubos aparecen más seguido, con piso en 70 frames
+  const pipeInterval = Math.max(70, pipeIntervalBase - diffLevel * 4);
+
+  // NUEVO: la gravedad sube levemente (cae un poco más rápido), con techo en 0.5
+  panda.gravity = Math.min(0.5, 0.38 + diffLevel * 0.008);
 
   panda.vy += panda.gravity;
   panda.y += panda.vy;
@@ -363,7 +391,8 @@ function update() {
     triggerGameOver();
   }
 
-  if (frame % pipeInterval === 0 && !gameWin) {
+  if (framesSincePipe >= pipeInterval && !gameWin) {
+    framesSincePipe = 0; // NUEVO
     const minPipe = 70;
     const maxPipeH = canvas.height - pipeGap - minPipe - 80;
     const topH = Math.floor(Math.random() * (maxPipeH - minPipe + 1)) + minPipe;
@@ -388,7 +417,7 @@ function update() {
       score++;
       scoreText.innerText = score;
 
-      if (score >= 50 && !gameWin) {
+      if (score >= WIN_SCORE && !gameWin) {
         gameWin = true;
         pipes = []; // Limpieza de obstáculos al ganar
         showVictory();
@@ -396,8 +425,10 @@ function update() {
     }
 
     const isMidAir = panda.vy < 0;
-    const paddingX = isMidAir ? 20 : 16; 
-    const paddingY = isMidAir ? 14 : 18; 
+    // NUEVO: el margen de tolerancia del hitbox se reduce con la dificultad, con piso para que siga siendo jugable
+    const shrink = Math.min(6, diffLevel * 0.7);
+    const paddingX = (isMidAir ? 20 : 16) + shrink;
+    const paddingY = (isMidAir ? 14 : 18) + shrink;
 
     const px = panda.x + paddingX;
     const py = panda.y + paddingY;
