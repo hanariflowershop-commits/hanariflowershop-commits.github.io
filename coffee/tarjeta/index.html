@@ -161,6 +161,8 @@
   }
   .checkpoint.reached .flag{ border-color:transparent var(--gold) transparent transparent; }
   .checkpoint.reached{ transform:translate(-50%,0) scale(1.06); }
+  .checkpoint.final{ transform:translate(-50%,0) scale(1.5); transform-origin:bottom center; z-index:2; }
+  .checkpoint.final.reached{ transform:translate(-50%,0) scale(1.5); }
   .checkpoint .num{
     position:absolute; bottom:-20px; font-size:0.6rem; color:#3a342b;
   }
@@ -237,6 +239,17 @@
 
   footer{ text-align:center; padding:20px 0 50px; font-size:0.78rem; color:#7a7161; }
 
+  /* ===== confeti de celebración ===== */
+  .confetti-piece{
+    position:fixed; top:-20px; z-index:999; pointer-events:none;
+    opacity:0.95; animation-name:confettiFall; animation-timing-function:linear;
+    animation-fill-mode:forwards;
+  }
+  @keyframes confettiFall{
+    0%{ transform:translateY(0) rotate(0deg); opacity:1; }
+    100%{ transform:translateY(110vh) rotate(720deg); opacity:0; }
+  }
+
   @media (prefers-reduced-motion: reduce){
     .panda, .checkpoint{ transition:none !important; animation:none !important; }
   }
@@ -303,9 +316,9 @@
 
 <div class="reward" id="rewardBox" style="display:none;">
   <h2>¡Tu panda llegó a la meta! 🎉</h2>
-  <p>Completaste tus 5 visitas. Muestra este código a nuestro equipo para tu descuento del 50%.</p>
+  <p>Completaste tus 5 visitas. Muestra este código a nuestro equipo para reclamar tu Latte Gratis.</p>
   <div class="code" id="rewardCode"></div>
-  <button class="used-btn" id="usedBtn">Ya usé mi descuento — reiniciar mi panda</button>
+  <button class="used-btn" id="usedBtn">Ya reclamé mi Latte Gratis — reiniciar mi panda</button>
 </div>
 
 <footer>Hanari — The Essence of Japan</footer>
@@ -364,6 +377,40 @@ function playCheckpointSound(){
     checkpointSound.currentTime = 0;
     checkpointSound.play().catch(() => {});
   }catch(e){}
+}
+
+/* ===== Música de fondo de celebración =====
+   Vive en la carpeta menu/ del repo (no junto a este index.html),
+   así que se usa la URL absoluta del dominio para que no dependa de
+   la carpeta desde la que se sirva esta tarjeta. Empieza a sonar
+   justo después del sonido de checkpoint, al llegar a la meta. */
+const bgMusic = new Audio('https://hanariec.com/menu/musica-fondo.mp3');
+bgMusic.loop = true;
+bgMusic.volume = 0.6;
+function playBackgroundMusic(){
+  try{ bgMusic.play().catch(() => {}); }catch(e){}
+}
+
+/* ===== Confeti de celebración ===== */
+const CONFETTI_COLORS = ['#F2B705', '#B5504B', '#6EC6F1', '#7CC77E', '#FBF8F1', '#83322E'];
+function launchConfetti(){
+  const count = 70;
+  for(let i = 0; i < count; i++){
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const size = 6 + Math.random() * 7;
+    const duration = 2.4 + Math.random() * 1.8;
+    const delay = Math.random() * 0.5;
+    piece.style.left = (Math.random() * 100) + 'vw';
+    piece.style.width = size + 'px';
+    piece.style.height = (size * 1.6) + 'px';
+    piece.style.background = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    piece.style.animationDuration = duration + 's';
+    piece.style.animationDelay = delay + 's';
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), (duration + delay) * 1000 + 300);
+  }
 }
 
 const track = document.getElementById('track');
@@ -453,6 +500,8 @@ function animateAdvance(fromStage, onDone){
     if(isFinal){
       pandaEl.src = SPRITES.jump;
       pandaEl.classList.add('celebrate');
+      launchConfetti();
+      setTimeout(playBackgroundMusic, 500);
       setTimeout(() => {
         pandaEl.classList.remove('celebrate');
         pandaEl.src = SPRITES.idle;
@@ -576,7 +625,7 @@ codeForm.addEventListener('submit', async function(e){
 });
 
 document.getElementById('usedBtn').addEventListener('click', function(){
-  if(confirm('¿Seguro que tu equipo Hanari ya aplicó el descuento? Esto reinicia a tu panda desde el inicio.')){
+  if(confirm('¿Seguro que tu equipo Hanari ya te dio tu Latte Gratis? Esto reinicia a tu panda desde el inicio.')){
     state = { folds:0, rewardCode:null };
     saveState(state);
     msgEl.textContent = '';
