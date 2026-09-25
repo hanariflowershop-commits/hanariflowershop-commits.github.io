@@ -1,334 +1,276 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Hanari Coffee - Calculadora de Café</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
-
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hanari · Panel interno — Código de la Grulla</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
   :root{
-    --cream:#F6F0E4;
-    --paper:#FBF8F1;
-    --ink:#18140F;
-    --rose:#B5504B;
-    --rose-deep:#83322E;
-    --cobalt:#2E5596;
+    --cream:#F6F0E4; --paper:#FBF8F1; --ink:#18140F;
+    --rose:#B5504B; --rose-deep:#83322E; --cobalt:#2E5596;
     --line: rgba(24,20,15,0.14);
   }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--cream); color:var(--ink); font-family:'Zen Kaku Gothic New', sans-serif; }
+  h1{ font-family:'Shippori Mincho', serif; font-weight:800; }
+  .wrap{ max-width:520px; margin:0 auto; padding:40px 24px 70px; }
 
-  /* RESET BÁSICO */
-  *{ box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: 'Zen Kaku Gothic New', sans-serif;
-    background-color: var(--cream);
-    color: var(--ink);
+  nav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(246,240,228,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
   }
-  h1,h2,h3{ font-family:'Shippori Mincho', serif; font-weight:800; }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; padding:14px 24px; max-width:1180px; }
+  .logo{ display:flex; align-items:center; gap:10px; }
+  .logo img{ height:26px; width:auto; }
+  .navlinks{ display:flex; gap:30px; font-size:0.92rem; }
+  .navlinks a{ position:relative; padding:4px 0; color:var(--ink); }
+  .navlinks a::after{
+    content:""; position:absolute; left:0; bottom:0; width:0; height:1.5px;
+    background:var(--rose); transition:width .25s ease;
+  }
+  .navlinks a:hover::after{ width:100%; }
 
-  /* --- HEADER Y NAVBAR --- */
-  .navbar-header {
-    position: sticky;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background-color: rgba(246,240,228,0.94);
-    backdrop-filter: blur(6px);
-    border-bottom: 1px solid var(--line);
-    z-index: 1000;
+  .navtoggle{
+    display:none; background:none; border:none; cursor:pointer;
+    width:38px; height:38px; padding:0; margin:0;
+    align-items:center; justify-content:center; position:relative; z-index:60;
   }
+  .navtoggle span{
+    position:absolute; left:8px; right:8px; height:2px;
+    background:var(--ink); border-radius:2px;
+    transition:transform .3s ease, opacity .3s ease, top .3s ease;
+  }
+  .navtoggle span:nth-child(1){ top:13px; }
+  .navtoggle span:nth-child(2){ top:19px; }
+  .navtoggle span:nth-child(3){ top:25px; }
+  .navtoggle.open span:nth-child(1){ top:19px; transform:rotate(45deg); }
+  .navtoggle.open span:nth-child(2){ opacity:0; }
+  .navtoggle.open span:nth-child(3){ top:19px; transform:rotate(-45deg); }
 
-  .navbar-container {
-    max-width: 1180px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 28px;
-    box-sizing: border-box;
-  }
-
-  .navbar-logo {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-  }
-
-  .navbar-logo img {
-    height: 26px;
-    width: auto;
-    object-fit: contain;
-    display: block;
-  }
-
-  .navbar-menu {
-    display: flex;
-    gap: 30px;
-  }
-
-  .nav-link {
-    text-decoration: none;
-    color: var(--ink);
-    font-size: 0.92rem;
-    font-weight: 500;
-    transition: color 0.2s ease;
-    position: relative;
-    padding: 4px 0;
-  }
-
-  .nav-link:hover,
-  .nav-link.active {
-    color: var(--rose-deep);
-  }
-
-  .nav-link::after{
-    content:'';
-    position:absolute; left:0; bottom:0; width:0; height:1.5px;
-    background: var(--rose); transition: width .25s ease;
-  }
-  .nav-link:hover::after,
-  .nav-link.active::after {
-    width: 100%;
-  }
-
-  .navbar-toggle {
-    display: none;
-    flex-direction: column;
-    justify-content: space-between;
-    width: 24px;
-    height: 18px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-  }
-
-  .navbar-toggle span {
-    width: 100%;
-    height: 2px;
-    background-color: var(--ink);
-    border-radius: 2px;
-  }
-
-  @media (max-width: 820px) {
-    .navbar-container {
-      padding: 14px 20px;
+  @media(max-width:820px){
+    .navlinks{
+      display:flex; flex-direction:column; align-items:flex-start; gap:0;
+      position:absolute; top:100%; left:0; right:0;
+      background:var(--paper); border-bottom:1px solid var(--line);
+      max-height:0; overflow:hidden; transition:max-height .35s ease;
     }
-
-    .navbar-toggle {
-      display: flex;
-    }
-
-    .navbar-menu {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      width: 100%;
-      background-color: var(--paper);
-      flex-direction: column;
-      gap: 0;
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease-in-out;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .navbar-menu.show {
-      max-height: 400px;
-    }
-
-    .nav-link {
-      padding: 14px 24px;
-      border-top: 1px solid var(--line);
-      display: block;
-    }
-
-    .nav-link.active::after,
-    .nav-link::after {
-      display: none;
-    }
+    .navlinks.open{ max-height:400px; }
+    .navlinks a{ width:100%; padding:14px 24px; border-top:1px solid var(--line); }
+    .navlinks a::after{ display:none; }
+    .navtoggle{ display:flex; }
   }
 
-  /* --- ESTILOS DE LA CALCULADORA --- */
-  .calc-page{
-    padding: 50px 20px 70px;
+  #gate{ max-width:340px; margin:120px auto; text-align:center; }
+  #gate p{ margin-bottom:16px; color:#3a342b; font-size:0.92rem; }
+  #gate input{
+    width:100%; padding:12px 14px; border:1px solid var(--line); background:var(--paper);
+    font-size:1.1rem; text-align:center; letter-spacing:0.3em; border-radius:2px; margin-bottom:12px;
+  }
+  #gate button{
+    width:100%; padding:12px; background:var(--ink); color:var(--paper); border:none;
+    font-family:inherit; font-size:0.95rem; cursor:pointer; border-radius:2px;
+  }
+  #gate button:disabled{ opacity:0.6; cursor:default; }
+  #gateErr{ color:var(--rose-deep); font-size:0.85rem; height:18px; margin-top:8px; }
+
+  #panel{ display:none; }
+  .kicker{ font-size:0.82rem; color:var(--rose-deep); margin-bottom:8px; }
+  h1{ font-size:1.6rem; margin-bottom:6px; }
+  .sub{ color:#3a342b; font-size:0.92rem; margin-bottom:30px; max-width:56ch; }
+
+  .today-card{
+    background:var(--rose); color:var(--paper); padding:34px 24px; border-radius:3px;
+    text-align:center; margin-bottom:20px;
+  }
+  .today-card .lbl{ font-size:0.82rem; opacity:0.85; margin-bottom:10px; }
+  .today-card .code{ font-family:'Shippori Mincho', serif; font-size:2.6rem; letter-spacing:0.1em; }
+  .today-card .countdown{ font-size:0.85rem; opacity:0.9; margin-top:14px; min-height:18px; }
+
+  .genbtn{
+    display:block; width:100%; margin-bottom:8px; background:var(--ink); color:var(--paper);
+    border:none; padding:14px; font-family:inherit; font-size:0.95rem; cursor:pointer; border-radius:2px;
+  }
+  .genbtn:disabled{ opacity:0.6; cursor:default; }
+  .genbtn:hover:not(:disabled){ opacity:0.9; }
+
+  .logout{
+    display:block; margin:0 auto 30px; background:none; border:none; color:#7a7161;
+    font-family:inherit; font-size:0.8rem; cursor:pointer; text-decoration:underline;
   }
 
-  .calc-head{
-    text-align: center;
-    max-width: 480px;
-    margin: 0 auto 30px;
-  }
-  .calc-head .kicker{ font-size:0.85rem; color:var(--rose-deep); font-weight:600; letter-spacing:0.05em; margin-bottom:8px; }
-  .calc-head h1{ font-size: clamp(1.6rem, 3.6vw, 2.1rem); }
-  .calc-head p{ margin-top:10px; color:#4a4438; font-size:0.95rem; }
-
-  .calc-container {
-    max-width: 420px;
-    margin: 0 auto;
-    padding: 28px;
-    background: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    box-shadow: 0 12px 34px rgba(24,20,15,0.1);
-    box-sizing: border-box;
-  }
-
-  .calc-container h3 {
-    margin-top: 0;
-    color: var(--ink);
-    font-family: 'Shippori Mincho', serif;
-    font-size: 1.25rem;
-    text-align: center;
-    margin-bottom: 22px;
-  }
-
-  .calc-container label {
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: #4a4438;
-    display: inline-block;
-    margin-bottom: 6px;
-  }
-
-  .calc-container select,
-  .calc-container input {
-    width: 100%;
-    padding: 11px 12px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    background: var(--cream);
-    color: var(--ink);
-    font-family: 'Zen Kaku Gothic New', sans-serif;
-    font-size: 0.94rem;
-    box-sizing: border-box;
-    margin-bottom: 16px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .calc-container select:focus,
-  .calc-container input:focus {
-    border-color: var(--rose-deep);
-  }
-
-  #resultado {
-    margin-top: 10px;
-    padding: 14px;
-    background: var(--cream);
-    border: 1px solid var(--rose-deep);
-    border-radius: 10px;
-    text-align: center;
-    color: var(--rose-deep);
-    font-size: 1.02rem;
-    font-weight: 600;
-  }
-  </style>
+  .note{ margin-top:10px; font-size:0.85rem; color:#5c5346; max-width:58ch; }
+  .note strong{ color:var(--ink); }
+  #genMsg{ text-align:center; font-size:0.85rem; color:var(--rose-deep); min-height:18px; margin-bottom:20px; }
+</style>
 </head>
 <body>
 
-  <!-- ENCABEZADO Y NAV -->
-  <header class="navbar-header">
-    <div class="navbar-container">
-      <a href="https://hanariec.com" class="navbar-logo">
-        <img src="https://hanariec.com/images/hanarilogo.png" alt="Hanari Logo">
-      </a>
-      
-      <button class="navbar-toggle" id="mobile-menu-btn" aria-label="Abrir menú">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
+<nav>
+  <div class="wrap">
+    <a class="logo" href="https://hanariec.com/">
+      <img src="https://hanariec.com/images/hanarilogo.png" alt="Hanari">
+    </a>
 
-      <nav class="navbar-menu" id="nav-menu">
-        <a href="https://hanariec.com/coffee" class="nav-link active">Coffee</a>
-        <a href="https://hanariec.com/flower" class="nav-link">Flower</a>
-        <a href="https://hanariec.com/journey" class="nav-link">Journey</a>
-        <a href="https://hanariec.com/menu" class="nav-link">Menú</a>
-        <a href="https://hanariec.com/retos" class="nav-link">Retos</a>
-        <a href="https://hanariec.com/ubicacion" class="nav-link">Ubícanos</a>
-      </nav>
-    </div>
-  </header>
-
-  <!-- CALCULADORA DE CAFÉ -->
-  <div class="calc-page">
-    <div class="calc-head">
-      <div class="kicker">HANARI COFFEE</div>
-      <h1>Calculadora de Café</h1>
-      <p>Encuentra la proporción ideal de café y agua para tu preparación.</p>
+    <div class="navlinks" id="navlinks">
+      <a href="https://hanariec.com/coffee">Coffee</a>
+      <a href="https://hanariec.com/flower">Flower</a>
+      <a href="https://hanariec.com/journey">Journey</a>
+      <a href="https://hanariec.com/menu">Menú</a>
+      <a href="https://hanariec.com/retos">Retos</a>
+      <a href="https://hanariec.com/ubicacion">Ubícanos</a>
     </div>
 
-    <div class="calc-container">
-      <h3>Preparación Café Sidra ☕</h3>
-
-      <label>Intensidad de Sabor:</label><br>
-      <select id="intensidad" onchange="calcular()">
-        <option value="18">Suave (1:18)</option>
-        <option value="16" selected>Medio (1:16)</option>
-        <option value="13">Fuerte (1:13)</option>
-      </select>
-
-      <label>Calcular según:</label><br>
-      <select id="modo" onchange="cambiarModo()">
-        <option value="cafe">Gramos de café</option>
-        <option value="agua">Mililitros de agua</option>
-      </select>
-
-      <div id="inputCafe">
-        <label>Gramos de café (1 cuchara ≈ 5g - 7g):</label><br>
-        <input type="number" id="cafe" value="15" oninput="calcular()">
-      </div>
-
-      <div id="inputAgua" style="display:none;">
-        <label>Mililitros de agua (ml):</label><br>
-        <input type="number" id="agua" value="240" oninput="calcular()">
-      </div>
-
-      <div id="resultado"></div>
-    </div>
+    <button class="navtoggle" id="navtoggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="navlinks">
+      <span></span><span></span><span></span>
+    </button>
   </div>
+</nav>
 
-  <script>
-  // CONTROL DEL MENÚ MÓVIL
-  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-  const navMenu = document.getElementById('nav-menu');
+<div id="gate">
+  <div class="wrap" style="padding:0;">
+    <p>Panel interno Hanari — ingresa el PIN del equipo.</p>
+    <input id="pinInput" type="password" inputmode="numeric" maxlength="8" placeholder="••••">
+    <button id="pinBtn">Entrar</button>
+    <div id="gateErr"></div>
+  </div>
+</div>
 
-  mobileMenuBtn.addEventListener('click', () => {
-    navMenu.classList.toggle('show');
+<div id="panel">
+  <div class="wrap">
+    <div class="kicker">GRULLA DE LEALTAD — SOLO EQUIPO</div>
+    <h1>Código para este cliente</h1>
+    <p class="sub">Aprieta "Generar código" cuando el cliente esté pagando y díctaselo. Sirve una sola vez y vence a los 3 minutos.</p>
+
+    <div class="today-card">
+      <div class="lbl">Código para este cliente</div>
+      <div class="code" id="liveCode">——————</div>
+      <div class="countdown" id="countdown">Aprieta "Generar código"</div>
+    </div>
+
+    <button class="genbtn" id="genBtn">Generar código</button>
+    <p id="genMsg"></p>
+    <button class="logout" id="logoutBtn">Cerrar sesión de staff</button>
+
+    <p class="note"><strong>Cómo funciona:</strong> el PIN no está guardado en este archivo — se verifica en tu Google Sheet cada vez que alguien lo escribe aquí. Aunque este archivo esté público en GitHub, nadie puede leer el PIN mirando el código, porque nunca aparece en él. Para cambiar el PIN del equipo, entra a tu Sheet, pestaña "Config", celda B1.</p>
+  </div>
+</div>
+
+<script>
+/* Pega aquí la URL que termina en /exec (la misma que uses en grulla-lealtad.html) */
+const API_BASE = 'https://script.google.com/macros/s/AKfycbyNkpjCv0pN9bjCuibcovZLFFEXjd_wLr6D-wWsahVV4siIdoU6Ji5FhN0KVhcUTtat/exec';
+
+/* El PIN NUNCA se escribe aquí en el código. Vive solo en la memoria
+   del navegador mientras dura la sesión (sessionStorage), y siempre
+   se valida contra Google, nunca localmente. */
+let currentPin = sessionStorage.getItem('hanari_staff_pin') || null;
+
+// ---- Mobile menu toggle ----
+const navtoggle = document.getElementById('navtoggle');
+const navlinks = document.getElementById('navlinks');
+navtoggle.addEventListener('click', () => {
+  const isOpen = navlinks.classList.toggle('open');
+  navtoggle.classList.toggle('open', isOpen);
+  navtoggle.setAttribute('aria-expanded', isOpen);
+});
+navlinks.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', () => {
+    navlinks.classList.remove('open');
+    navtoggle.classList.remove('open');
+    navtoggle.setAttribute('aria-expanded', 'false');
   });
+});
 
-  // LÓGICA DE LA CALCULADORA
-  function cambiarModo() {
-    const modo = document.getElementById("modo").value;
-    document.getElementById("inputCafe").style.display = modo === "cafe" ? "block" : "none";
-    document.getElementById("inputAgua").style.display = modo === "agua" ? "block" : "none";
-    calcular();
+const gate = document.getElementById('gate');
+const panel = document.getElementById('panel');
+const pinInput = document.getElementById('pinInput');
+const pinBtn = document.getElementById('pinBtn');
+const gateErr = document.getElementById('gateErr');
+
+pinBtn.addEventListener('click', () => attemptLogin(pinInput.value.trim()));
+pinInput.addEventListener('keydown', e => { if(e.key==='Enter') attemptLogin(pinInput.value.trim()); });
+document.getElementById('genBtn').addEventListener('click', generarCodigo);
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('hanari_staff_pin');
+  currentPin = null;
+  panel.style.display = 'none';
+  gate.style.display = 'block';
+  pinInput.value = '';
+});
+
+async function attemptLogin(pin){
+  if(API_BASE.indexOf('PEGA_AQUI') === 0){
+    gateErr.textContent = 'Falta conectar este panel con el backend (API_BASE).';
+    return;
   }
-
-  function calcular() {
-    const intensidad = parseFloat(document.getElementById("intensidad").value);
-    const modo = document.getElementById("modo").value;
-    let resultado = "";
-
-    if (modo === "cafe") {
-      const gramosCafe = parseFloat(document.getElementById("cafe").value) || 0;
-      const agua = gramosCafe * intensidad;
-      resultado = `<strong>Usa ${agua.toFixed(0)} ml de agua</strong>`;
+  if(!pin){
+    gateErr.textContent = 'Escribe el PIN.';
+    return;
+  }
+  pinBtn.disabled = true;
+  gateErr.textContent = '';
+  try{
+    const url = `${API_BASE}?action=login&pin=${encodeURIComponent(pin)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if(data.ok && data.valid){
+      currentPin = pin;
+      sessionStorage.setItem('hanari_staff_pin', pin);
+      gate.style.display = 'none';
+      panel.style.display = 'block';
     } else {
-      const mlAgua = parseFloat(document.getElementById("agua").value) || 0;
-      const cafe = mlAgua / intensidad;
-      resultado = `<strong>Usa ${cafe.toFixed(1)} g de café</strong>`;
+      gateErr.textContent = 'PIN incorrecto.';
+    }
+  }catch(err){
+    gateErr.textContent = 'No hay conexión a internet.';
+  }finally{
+    pinBtn.disabled = false;
+  }
+}
+
+// Si ya había una sesión abierta en este navegador, la confirmamos
+// contra Google antes de mostrar el panel (por si cambiaron el PIN).
+if(currentPin){
+  attemptLogin(currentPin);
+}
+
+async function generarCodigo(){
+  const genMsg = document.getElementById('genMsg');
+  const genBtn = document.getElementById('genBtn');
+  genMsg.textContent = '';
+  genBtn.disabled = true;
+  document.getElementById('liveCode').textContent = 'Generando…';
+  document.getElementById('countdown').textContent = '';
+
+  try{
+    const url = `${API_BASE}?action=generate&pin=${encodeURIComponent(currentPin)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if(!data.ok){
+      document.getElementById('liveCode').textContent = '——————';
+      if(data.error === 'pin_invalido'){
+        genMsg.textContent = 'Tu sesión venció (el PIN cambió). Cierra sesión y vuelve a entrar.';
+      } else {
+        genMsg.textContent = 'No se pudo generar el código.';
+      }
+      return;
     }
 
-    document.getElementById("resultado").innerHTML = resultado;
+    const c = data.code;
+    document.getElementById('liveCode').textContent = c.slice(0,3) + '-' + c.slice(3);
+    document.getElementById('countdown').textContent = `Válido por ${Math.round(data.expiresInSeconds/60)} minutos, una sola vez`;
+  }catch(err){
+    document.getElementById('liveCode').textContent = '——————';
+    genMsg.textContent = 'No hay conexión a internet. Intenta de nuevo.';
+  }finally{
+    genBtn.disabled = false;
   }
-
-  // Ejecuta el cálculo al cargar la página
-  calcular();
-  </script>
+}
+</script>
 
 </body>
 </html>
