@@ -316,9 +316,10 @@
 const API_BASE = 'https://script.google.com/macros/s/AKfycbyNkpjCv0pN9bjCuibcovZLFFEXjd_wLr6D-wWsahVV4siIdoU6Ji5FhN0KVhcUTtat/exec';
 
 /* ===== Sprites del panda (mismos assets que el juego Panda Runner) =====
-   Ajusta SPRITE_BASE si esta página no vive en la misma carpeta relativa
-   que usa el juego ("../retos/..."). */
-const SPRITE_BASE = '../retos/';
+   Ruta absoluta (no relativa), basada en el link "Retos" del menú de
+   navegación de esta misma página. Así funciona sin importar en qué
+   carpeta subas este archivo. */
+const SPRITE_BASE = 'https://hanariec.com/retos/';
 const SPRITES = {
   run1: SPRITE_BASE + 'corriendo1.png',
   run2: SPRITE_BASE + 'corriendo2.png',
