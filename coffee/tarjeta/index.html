@@ -149,6 +149,7 @@
     position:absolute; bottom:0; transform:translate(-50%, 0);
     display:flex; flex-direction:column; align-items:center;
     transition:filter .3s ease, transform .3s ease;
+    z-index:1;
   }
   .checkpoint .pole{
     width:4px; height:46px; background:#5c5346; margin:0 auto;
@@ -161,14 +162,14 @@
   }
   .checkpoint.reached .flag{ border-color:transparent var(--gold) transparent transparent; }
   .checkpoint.reached{ transform:translate(-50%,0) scale(1.06); }
-  .checkpoint.final{ transform:translate(-50%,0) scale(1.5); transform-origin:bottom center; z-index:2; }
-  .checkpoint.final.reached{ transform:translate(-50%,0) scale(1.5); }
+  .checkpoint.final{ transform:translate(-50%,0) scale(1.15); transform-origin:bottom center; z-index:1; }
+  .checkpoint.final.reached{ transform:translate(-50%,0) scale(1.15); }
   .checkpoint .num{
     position:absolute; bottom:-20px; font-size:0.6rem; color:#3a342b;
   }
-  .checkpoint.final .pole{ height:56px; }
+  .checkpoint.final .pole{ height:50px; }
   .checkpoint.final .flag{
-    border-width:10px 18px 10px 0;
+    border-width:9px 16px 9px 0;
   }
 
   .panda{
@@ -177,6 +178,7 @@
     transition:left 4.5s linear;
     image-rendering:pixelated;
     filter:drop-shadow(0 4px 4px rgba(0,0,0,0.25));
+    z-index:10;
   }
   .panda.bounce{ animation: pandaBounce 0.6s ease-in-out infinite; }
   @keyframes pandaBounce{
@@ -342,8 +344,13 @@ const SPRITES = {
 
 /* ===== Geometría del nivel =====
    6 puntos: posición 0 = salida, 1..5 = cada visita. Expresado en %
-   dentro del track (que ya tiene margen lateral del 5%). */
-const LEVEL_POSITIONS = [2, 20, 40, 60, 80, 98];
+   dentro del track (que ya tiene margen lateral del 5%).
+   CHECKPOINT_POSITIONS ubica las banderas. PANDA_STOPS ubica dónde
+   se detiene el panda en cada parada: es un pelín antes de la
+   bandera para que quede parado junto al asta, no encima de ella
+   (sobre todo en la meta, donde la bandera final es más grande). */
+const CHECKPOINT_POSITIONS = [2, 20, 40, 60, 80, 98];
+const PANDA_STOPS = [2, 17, 37, 57, 77, 91];
 
 /* ===== Ritmo de la caminata =====
    La caminata dura varios segundos a propósito: la idea es que se
@@ -431,7 +438,7 @@ function buildTrack(){
     const cp = document.createElement('div');
     cp.className = 'checkpoint' + (i === 5 ? ' final' : '');
     cp.dataset.stage = i;
-    cp.style.left = LEVEL_POSITIONS[i] + '%';
+    cp.style.left = CHECKPOINT_POSITIONS[i] + '%';
     cp.innerHTML = `
       <div class="flag"></div>
       <div class="pole"></div>
@@ -447,7 +454,7 @@ function buildTrack(){
   pandaEl.src = SPRITES.idle;
   pandaEl.alt = 'Panda';
   pandaEl.style.transition = 'none';
-  pandaEl.style.left = LEVEL_POSITIONS[0] + '%';
+  pandaEl.style.left = PANDA_STOPS[0] + '%';
   track.appendChild(pandaEl);
 }
 
@@ -461,7 +468,7 @@ function markCheckpoints(stage){
 function renderSceneInstant(stage){
   markCheckpoints(stage);
   pandaEl.style.transition = 'none';
-  pandaEl.style.left = LEVEL_POSITIONS[stage] + '%';
+  pandaEl.style.left = PANDA_STOPS[stage] + '%';
   pandaEl.src = SPRITES.idle;
   pandaEl.classList.remove('bounce', 'celebrate');
 }
@@ -490,7 +497,7 @@ function animateAdvance(fromStage, onDone){
   pandaEl.style.transition = `left ${WALK_DURATION_MS}ms linear`;
   // forzar reflow para que la transición se aplique
   void pandaEl.offsetWidth;
-  pandaEl.style.left = LEVEL_POSITIONS[toStage] + '%';
+  pandaEl.style.left = PANDA_STOPS[toStage] + '%';
 
   setTimeout(() => {
     stopWalking();
