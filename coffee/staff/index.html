@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hanari · Panel interno — Código de la Grulla</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F6F0E4; --paper:#FBF8F1; --ink:#18140F;
+    --rose:#B5504B; --rose-deep:#83322E; --cobalt:#2E5596;
+    --line: rgba(24,20,15,0.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--cream); color:var(--ink); font-family:'Zen Kaku Gothic New', sans-serif; }
+  h1{ font-family:'Shippori Mincho', serif; font-weight:800; }
+  .wrap{ max-width:520px; margin:0 auto; padding:40px 24px 70px; }
+
+  #gate{ max-width:340px; margin:120px auto; text-align:center; }
+  #gate p{ margin-bottom:16px; color:#3a342b; font-size:0.92rem; }
+  #gate input{
+    width:100%; padding:12px 14px; border:1px solid var(--line); background:var(--paper);
+    font-size:1.1rem; text-align:center; letter-spacing:0.3em; border-radius:2px; margin-bottom:12px;
+  }
+  #gate button{
+    width:100%; padding:12px; background:var(--ink); color:var(--paper); border:none;
+    font-family:inherit; font-size:0.95rem; cursor:pointer; border-radius:2px;
+  }
+  #gate button:disabled{ opacity:0.6; cursor:default; }
+  #gateErr{ color:var(--rose-deep); font-size:0.85rem; height:18px; margin-top:8px; }
+
+  #panel{ display:none; }
+  .kicker{ font-size:0.82rem; color:var(--rose-deep); margin-bottom:8px; }
+  h1{ font-size:1.6rem; margin-bottom:6px; }
+  .sub{ color:#3a342b; font-size:0.92rem; margin-bottom:30px; max-width:56ch; }
+
+  .today-card{
+    background:var(--rose); color:var(--paper); padding:34px 24px; border-radius:3px;
+    text-align:center; margin-bottom:20px;
+  }
+  .today-card .lbl{ font-size:0.82rem; opacity:0.85; margin-bottom:10px; }
+  .today-card .code{ font-family:'Shippori Mincho', serif; font-size:2.6rem; letter-spacing:0.1em; }
+  .today-card .countdown{ font-size:0.85rem; opacity:0.9; margin-top:14px; min-height:18px; }
+
+  .genbtn{
+    display:block; width:100%; margin-bottom:8px; background:var(--ink); color:var(--paper);
+    border:none; padding:14px; font-family:inherit; font-size:0.95rem; cursor:pointer; border-radius:2px;
+  }
+  .genbtn:disabled{ opacity:0.6; cursor:default; }
+  .genbtn:hover:not(:disabled){ opacity:0.9; }
+
+  .logout{
+    display:block; margin:0 auto 30px; background:none; border:none; color:#7a7161;
+    font-family:inherit; font-size:0.8rem; cursor:pointer; text-decoration:underline;
+  }
+
+  .note{ margin-top:10px; font-size:0.85rem; color:#5c5346; max-width:58ch; }
+  .note strong{ color:var(--ink); }
+  #genMsg{ text-align:center; font-size:0.85rem; color:var(--rose-deep); min-height:18px; margin-bottom:20px; }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="wrap" style="padding:0;">
+    <p>Panel interno Hanari — ingresa el PIN del equipo.</p>
+    <input id="pinInput" type="password" inputmode="numeric" maxlength="8" placeholder="••••">
+    <button id="pinBtn">Entrar</button>
+    <div id="gateErr"></div>
+  </div>
+</div>
+
+<div id="panel">
+  <div class="wrap">
+    <div class="kicker">GRULLA DE LEALTAD — SOLO EQUIPO</div>
+    <h1>Código para este cliente</h1>
+    <p class="sub">Aprieta "Generar código" cuando el cliente esté pagando y díctaselo. Sirve una sola vez y vence a los 3 minutos.</p>
+
+    <div class="today-card">
+      <div class="lbl">Código para este cliente</div>
+      <div class="code" id="liveCode">——————</div>
+      <div class="countdown" id="countdown">Aprieta "Generar código"</div>
+    </div>
+
+    <button class="genbtn" id="genBtn">Generar código</button>
+    <p id="genMsg"></p>
+    <button class="logout" id="logoutBtn">Cerrar sesión de staff</button>
+
+    <p class="note"><strong>Cómo funciona:</strong> el PIN no está guardado en este archivo — se verifica en tu Google Sheet cada vez que alguien lo escribe aquí. Aunque este archivo esté público en GitHub, nadie puede leer el PIN mirando el código, porque nunca aparece en él. Para cambiar el PIN del equipo, entra a tu Sheet, pestaña "Config", celda B1.</p>
+  </div>
+</div>
+
+<script>
+/* Pega aquí la URL que termina en /exec (la misma que uses en grulla-lealtad.html) */
+const API_BASE = 'https://script.google.com/macros/s/AKfycbz2ohunfplqg_76maQt4DaVfD1ziFTa9MzjfuiojB5T_Wpq4ZHLP0ULJxrOSsYIbY6C/exec';
+
+/* El PIN NUNCA se escribe aquí en el código. Vive solo en la memoria
+   del navegador mientras dura la sesión (sessionStorage), y siempre
+   se valida contra Google, nunca localmente. */
+let currentPin = sessionStorage.getItem('hanari_staff_pin') || null;
+
+const gate = document.getElementById('gate');
+const panel = document.getElementById('panel');
+const pinInput = document.getElementById('pinInput');
+const pinBtn = document.getElementById('pinBtn');
+const gateErr = document.getElementById('gateErr');
+
+pinBtn.addEventListener('click', () => attemptLogin(pinInput.value.trim()));
+pinInput.addEventListener('keydown', e => { if(e.key==='Enter') attemptLogin(pinInput.value.trim()); });
+document.getElementById('genBtn').addEventListener('click', generarCodigo);
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('hanari_staff_pin');
+  currentPin = null;
+  panel.style.display = 'none';
+  gate.style.display = 'block';
+  pinInput.value = '';
+});
+
+async function attemptLogin(pin){
+  if(API_BASE.indexOf('PEGA_AQUI') === 0){
+    gateErr.textContent = 'Falta conectar este panel con el backend (API_BASE).';
+    return;
+  }
+  if(!pin){
+    gateErr.textContent = 'Escribe el PIN.';
+    return;
+  }
+  pinBtn.disabled = true;
+  gateErr.textContent = '';
+  try{
+    const url = `${API_BASE}?action=login&pin=${encodeURIComponent(pin)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if(data.ok && data.valid){
+      currentPin = pin;
+      sessionStorage.setItem('hanari_staff_pin', pin);
+      gate.style.display = 'none';
+      panel.style.display = 'block';
+    } else {
+      gateErr.textContent = 'PIN incorrecto.';
+    }
+  }catch(err){
+    gateErr.textContent = 'No hay conexión a internet.';
+  }finally{
+    pinBtn.disabled = false;
+  }
+}
+
+// Si ya había una sesión abierta en este navegador, la confirmamos
+// contra Google antes de mostrar el panel (por si cambiaron el PIN).
+if(currentPin){
+  attemptLogin(currentPin);
+}
+
+async function generarCodigo(){
+  const genMsg = document.getElementById('genMsg');
+  const genBtn = document.getElementById('genBtn');
+  genMsg.textContent = '';
+  genBtn.disabled = true;
+  document.getElementById('liveCode').textContent = 'Generando…';
+  document.getElementById('countdown').textContent = '';
+
+  try{
+    const url = `${API_BASE}?action=generate&pin=${encodeURIComponent(currentPin)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if(!data.ok){
+      document.getElementById('liveCode').textContent = '——————';
+      if(data.error === 'pin_invalido'){
+        genMsg.textContent = 'Tu sesión venció (el PIN cambió). Cierra sesión y vuelve a entrar.';
+      } else {
+        genMsg.textContent = 'No se pudo generar el código.';
+      }
+      return;
+    }
+
+    const c = data.code;
+    document.getElementById('liveCode').textContent = c.slice(0,3) + '-' + c.slice(3);
+    document.getElementById('countdown').textContent = `Válido por ${Math.round(data.expiresInSeconds/60)} minutos, una sola vez`;
+  }catch(err){
+    document.getElementById('liveCode').textContent = '——————';
+    genMsg.textContent = 'No hay conexión a internet. Intenta de nuevo.';
+  }finally{
+    genBtn.disabled = false;
+  }
+}
+</script>
+
+</body>
+</html>

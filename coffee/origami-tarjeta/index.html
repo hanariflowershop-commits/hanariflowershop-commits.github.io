@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orizuru — La Grulla de Hanari</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F6F0E4;
+    --paper:#FBF8F1;
+    --paper-back:#E9CFC8;
+    --ink:#18140F;
+    --rose:#B5504B;
+    --rose-deep:#83322E;
+    --cobalt:#2E5596;
+    --line: rgba(24,20,15,0.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  h1,h2{ font-family:'Shippori Mincho', serif; font-weight:800; }
+  a{ color:inherit; }
+  .wrap{ max-width:640px; margin:0 auto; padding:0 24px; }
+
+  nav{
+    border-bottom:1px solid var(--line);
+    background:rgba(246,240,228,0.92);
+    position:sticky; top:0; z-index:20;
+  }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; padding:14px 24px; max-width:640px; }
+  nav a.back{ font-size:0.85rem; border-bottom:1px solid currentColor; padding-bottom:1px; }
+  nav .brand{ font-family:'Shippori Mincho', serif; font-weight:700; font-size:1.05rem; }
+
+  header.top{ padding:44px 0 8px; text-align:center; }
+  header.top .kicker{ font-size:0.85rem; color:var(--rose-deep); margin-bottom:10px; }
+  header.top h1{ font-size:clamp(1.8rem,5vw,2.4rem); margin-bottom:10px; }
+  header.top p{ color:#3a342b; font-size:0.98rem; max-width:46ch; margin:0 auto; }
+
+  /* ===== progress dots ===== */
+  .progress{ display:flex; justify-content:center; gap:10px; margin:30px 0 4px; }
+  .dot{
+    width:13px; height:13px; border-radius:2px; background:var(--line);
+    transform:rotate(45deg);
+    transition:background .4s ease, transform .4s ease;
+  }
+  .dot.filled{ background:var(--rose); }
+
+  /* ===== 3D fold stage ===== */
+  .stage{
+    display:flex; justify-content:center; align-items:center;
+    margin:36px auto 8px; height:260px; position:relative;
+  }
+  .fold-scene{
+    width:220px; height:220px; position:relative;
+    perspective:900px;
+  }
+  .paper-base{
+    position:absolute; left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    background:var(--paper);
+    box-shadow:0 16px 34px rgba(24,20,15,0.20);
+    background-image:repeating-linear-gradient(0deg, rgba(24,20,15,0.035) 0 1px, transparent 1px 9px);
+    transition:width .6s cubic-bezier(.65,0,.35,1), height .6s cubic-bezier(.65,0,.35,1),
+               clip-path .6s cubic-bezier(.65,0,.35,1), opacity .5s ease, transform .5s ease;
+  }
+  .flap{
+    position:absolute;
+    transform-style:preserve-3d;
+    transition:transform .8s cubic-bezier(.45,.05,.2,1);
+    pointer-events:none;
+  }
+  .flap .face{
+    position:absolute; inset:0;
+    backface-visibility:hidden;
+    box-shadow:0 6px 18px rgba(24,20,15,0.18);
+    background-image:repeating-linear-gradient(0deg, rgba(24,20,15,0.035) 0 1px, transparent 1px 9px);
+  }
+  .flap .face.front{ background-color:var(--paper); }
+  .flap .face.back{ background-color:var(--paper-back); }
+
+  .crane-wrap{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transform-style:preserve-3d;
+  }
+  .crane-wrap svg{ width:150px; height:150px; filter:drop-shadow(0 14px 20px rgba(24,20,15,0.22)); }
+  .crane-wrap.fly{ animation: craneFly3D 2s cubic-bezier(.3,0,.18,1) forwards; }
+  @keyframes craneFly3D{
+    0%{ opacity:0; transform:translateZ(-180px) translateY(26px) rotateY(-35deg) rotateZ(-6deg) scale(.4); }
+    38%{ opacity:1; }
+    68%{ transform:translateZ(50px) translateY(-22px) rotateY(18deg) rotateZ(3deg) scale(1.08); }
+    100%{ opacity:1; transform:translateZ(0) translateY(0) rotateY(0deg) rotateZ(0deg) scale(1); }
+  }
+
+  .stage-label{ text-align:center; font-size:0.88rem; color:#5c5346; min-height:20px; }
+
+  /* ===== code entry ===== */
+  .code-form{
+    max-width:320px; margin:26px auto 6px; display:flex; flex-direction:column; gap:12px;
+  }
+  .code-form label{ font-size:0.85rem; color:#3a342b; text-align:center; }
+  .code-form input{
+    border:1px solid var(--line); background:var(--paper);
+    padding:14px 14px; font-size:1.2rem; font-family:'Shippori Mincho', serif; color:var(--ink);
+    border-radius:2px; text-align:center; letter-spacing:0.15em; text-transform:uppercase;
+  }
+  .code-form input:focus{ outline:2px solid var(--rose); outline-offset:1px; }
+  .code-form button{
+    background:var(--rose); color:var(--paper); border:none; padding:13px 18px;
+    font-size:0.98rem; font-family:'Zen Kaku Gothic New', sans-serif; cursor:pointer; border-radius:2px;
+    transition:background .2s ease;
+  }
+  .code-form button:disabled{ opacity:0.6; cursor:default; }
+  .code-form button:hover:not(:disabled){ background:var(--rose-deep); }
+  .msg{ text-align:center; font-size:0.9rem; min-height:22px; }
+  .msg.error{ color:var(--rose-deep); }
+  .msg.ok{ color:#2f6b3e; }
+  .msg.info{ color:#5c5346; }
+
+  /* ===== reward panel ===== */
+  .reward{
+    max-width:420px; margin:20px auto 60px; background:var(--paper);
+    border:1px solid var(--line); padding:28px 26px; text-align:center;
+    border-radius:3px;
+  }
+  .reward h2{ font-size:1.4rem; margin-bottom:8px; }
+  .reward p{ color:#3a342b; font-size:0.92rem; margin-bottom:16px; }
+  .reward .code{
+    font-family:'Shippori Mincho', serif; font-size:1.6rem; letter-spacing:0.1em;
+    background:var(--cream); border:1px dashed var(--rose-deep); padding:12px 16px;
+    display:inline-block; margin-bottom:16px; color:var(--rose-deep);
+  }
+  .reward .used-btn{
+    display:block; margin:0 auto; background:none; border:1px solid var(--line);
+    padding:10px 16px; font-family:inherit; font-size:0.85rem; color:var(--ink);
+    cursor:pointer; border-radius:2px;
+  }
+  .reward .used-btn:hover{ border-color:var(--rose-deep); }
+
+  footer{ text-align:center; padding:20px 0 50px; font-size:0.78rem; color:#7a7161; }
+
+  @media (prefers-reduced-motion: reduce){
+    .paper-base, .flap, .crane-wrap.fly{ transition:none !important; animation:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <span class="brand">Hanari · Orizuru</span>
+    <a class="back" href="https://hanariec.com/">← Volver a Hanari</a>
+  </div>
+</nav>
+
+<header class="top">
+  <div class="wrap">
+    <div class="kicker">GRULLA DE LEALTAD</div>
+    <h1>Dobla tu propia grulla,<br>visita a visita.</h1>
+    <p>Cada vez que nos visitas, nuestro equipo te da un código. Ingrésalo aquí para doblar tu papel. Al quinto doblez, tu grulla vuela y revela tu recompensa.</p>
+  </div>
+</header>
+
+<div class="progress" id="progress"></div>
+
+<div class="stage">
+  <div class="fold-scene" id="foldScene">
+    <div class="paper-base" id="paperBase"></div>
+    <div class="flap" id="flap" style="display:none;">
+      <div class="face front"></div>
+      <div class="face back"></div>
+    </div>
+    <div class="crane-wrap" id="craneWrap">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="wingGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#FBF8F1"/>
+            <stop offset="100%" stop-color="#E9CFC8"/>
+          </linearGradient>
+        </defs>
+        <path d="M50 20 L20 60 L50 52 L80 60 Z" fill="url(#wingGrad)" stroke="#83322E" stroke-width="1.4"/>
+        <path d="M50 52 L50 88 L38 78 M50 88 L62 78" stroke="#83322E" stroke-width="1.4" fill="none"/>
+        <path d="M50 20 L50 52" stroke="#83322E" stroke-width="1"/>
+        <path d="M20 60 L4 46 M80 60 L96 46" stroke="#B5504B" stroke-width="1.4" fill="none"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<p class="stage-label" id="stageLabel">Doblez 0 de 5</p>
+
+<form class="code-form" id="codeForm" autocomplete="off">
+  <label for="codeInput">Código de tu visita de hoy</label>
+  <input id="codeInput" type="text" placeholder="H7K92X" maxlength="10">
+  <button type="submit">Doblar papel</button>
+</form>
+<p class="msg" id="msg"></p>
+
+<div class="reward" id="rewardBox" style="display:none;">
+  <h2>Tu grulla ha volado 🎐</h2>
+  <p>Completaste tus 5 visitas. Muestra este código a nuestro equipo para tu descuento del 50%.</p>
+  <div class="code" id="rewardCode"></div>
+  <button class="used-btn" id="usedBtn">Ya usé mi descuento — reiniciar mi grulla</button>
+</div>
+
+<footer>Hanari — The Essence of Japan</footer>
+
+<script>
+/* ===== Conexión con el backend (Google Apps Script) =====
+   Pega aquí la URL que termina en /exec cuando despliegues el script. */
+const API_BASE = 'https://script.google.com/macros/s/AKfycbz2ohunfplqg_76maQt4DaVfD1ziFTa9MzjfuiojB5T_Wpq4ZHLP0ULJxrOSsYIbY6C/exec';
+
+/* ===== Geometría del doblado 3D =====
+   Cada paso describe la "solapa" que se dobla (con su cara frontal
+   y trasera) y cómo queda el papel después de doblarse. Todo en un
+   sistema de 200x200 para que sea fácil de ajustar. */
+const BASE = 200;
+const FOLD_CONFIG = [
+  { // Doblez 1: la mitad de arriba cae sobre la de abajo
+    flap:{ w:BASE, h:BASE/2, l:0, t:0, clip:null, originX:'50%', originY:'100%', rotate:'rotateX(180deg)' },
+    after:{ w:BASE, h:BASE/2, clip:'none' }
+  },
+  { // Doblez 2: la mitad derecha cae sobre la izquierda
+    flap:{ w:BASE/2, h:BASE/2, l:BASE/2, t:0, clip:null, originX:'0%', originY:'50%', rotate:'rotateY(180deg)' },
+    after:{ w:BASE/2, h:BASE/2, clip:'none' }
+  },
+  { // Doblez 3: la esquina superior-derecha cae en diagonal
+    flap:{ w:BASE/2, h:BASE/2, l:0, t:0, clip:'polygon(0 0,100% 0,100% 100%)', originX:'0%', originY:'0%', rotate:'rotate3d(1,1,0,180deg)' },
+    after:{ w:BASE/2, h:BASE/2, clip:'polygon(0 0,0 100%,100% 100%)' }
+  },
+  { // Doblez 4: el triángulo se dobla otra vez sobre su propio centro
+    flap:{ w:BASE/2, h:BASE/2, l:0, t:0, clip:'polygon(0 100%,0 0,50% 50%)', originX:'0%', originY:'100%', rotate:'rotate3d(1,-1,0,180deg)' },
+    after:{ w:BASE/2, h:BASE/2, clip:'polygon(0 100%,100% 100%,50% 50%)' }
+  }
+];
+
+const paperBase = document.getElementById('paperBase');
+const flap = document.getElementById('flap');
+const flapFront = flap.querySelector('.front');
+const flapBack = flap.querySelector('.back');
+const craneWrap = document.getElementById('craneWrap');
+const progressEl = document.getElementById('progress');
+const stageLabel = document.getElementById('stageLabel');
+const msgEl = document.getElementById('msg');
+const codeForm = document.getElementById('codeForm');
+const rewardBox = document.getElementById('rewardBox');
+const rewardCodeEl = document.getElementById('rewardCode');
+
+function setBase(cfg){
+  paperBase.style.width = cfg.w + 'px';
+  paperBase.style.height = cfg.h + 'px';
+  paperBase.style.clipPath = cfg.clip === 'none' ? 'none' : cfg.clip;
+  paperBase.style.opacity = '1';
+  paperBase.style.transform = 'translate(-50%,-50%)';
+}
+
+function renderStageInstant(stage){
+  flap.style.display = 'none';
+  if(stage === 0){
+    setBase({ w:BASE, h:BASE, clip:'none' });
+    craneWrap.style.opacity = '0';
+    craneWrap.classList.remove('fly');
+    paperBase.style.display = 'block';
+  } else if(stage >= 1 && stage <= 4){
+    setBase(FOLD_CONFIG[stage-1].after);
+    craneWrap.style.opacity = '0';
+    craneWrap.classList.remove('fly');
+    paperBase.style.display = 'block';
+  } else if(stage >= 5){
+    paperBase.style.display = 'none';
+    craneWrap.style.opacity = '1';
+    craneWrap.classList.remove('fly');
+  }
+}
+
+function animateFoldStep(fromStage, onDone){
+  if(fromStage === 4){
+    // Doblez final: el papel se colapsa y aparece la grulla volando
+    paperBase.style.transition = 'transform .5s ease, opacity .5s ease';
+    paperBase.style.transform = 'translate(-50%,-50%) scale(0.3) rotate(12deg)';
+    paperBase.style.opacity = '0';
+    setTimeout(() => {
+      paperBase.style.display = 'none';
+      craneWrap.style.opacity = '1';
+      craneWrap.classList.add('fly');
+      onDone && onDone();
+    }, 500);
+    return;
+  }
+
+  const cfg = FOLD_CONFIG[fromStage];
+  const f = cfg.flap;
+
+  flap.style.transition = 'none';
+  flap.style.left = f.l + 'px';
+  flap.style.top = f.t + 'px';
+  flap.style.width = f.w + 'px';
+  flap.style.height = f.h + 'px';
+  flap.style.clipPath = f.clip || 'none';
+  flap.style.transformOrigin = `${f.originX} ${f.originY}`;
+  flap.style.transform = 'none';
+  flapBack.style.transform = f.rotate;
+  flap.style.display = 'block';
+
+  // Posicionar el flap relativo al centro del fold-scene (igual que paperBase)
+  const sceneSize = 220;
+  const offset = (sceneSize - BASE) / 2;
+  flap.style.left = (offset + f.l) + 'px';
+  flap.style.top = (offset + f.t) + 'px';
+
+  requestAnimationFrame(() => {
+    flap.style.transition = 'transform .8s cubic-bezier(.45,.05,.2,1)';
+    requestAnimationFrame(() => { flap.style.transform = f.rotate; });
+  });
+
+  setTimeout(() => {
+    flap.style.display = 'none';
+    paperBase.style.transition = 'width .6s cubic-bezier(.65,0,.35,1), height .6s cubic-bezier(.65,0,.35,1), clip-path .6s cubic-bezier(.65,0,.35,1)';
+    setBase(cfg.after);
+    onDone && onDone();
+  }, 820);
+}
+
+/* ===== Estado local ===== */
+const STORAGE_KEY = 'hanari_grulla_state_v2';
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : { folds:0, rewardCode:null };
+  }catch(e){ return { folds:0, rewardCode:null }; }
+}
+function saveState(s){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+let state = loadState();
+
+function renderDots(){
+  progressEl.innerHTML = '';
+  for(let i=0;i<5;i++){
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < state.folds ? ' filled' : '');
+    progressEl.appendChild(d);
+  }
+}
+function renderLabel(){
+  stageLabel.textContent = state.folds >= 5 ? 'Grulla completa' : `Doblez ${state.folds} de 5`;
+}
+function renderRewardUI(){
+  if(state.folds >= 5 && state.rewardCode){
+    codeForm.style.display = 'none';
+    rewardBox.style.display = 'block';
+    rewardCodeEl.textContent = state.rewardCode;
+  } else {
+    rewardBox.style.display = 'none';
+    codeForm.style.display = 'flex';
+  }
+}
+function renderAll(){
+  renderDots();
+  renderLabel();
+  renderRewardUI();
+  renderStageInstant(state.folds);
+}
+
+function makeRewardCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let out = 'HANARI-';
+  for(let i=0;i<5;i++) out += chars[Math.floor(Math.random()*chars.length)];
+  return out;
+}
+
+codeForm.addEventListener('submit', async function(e){
+  e.preventDefault();
+  const codeInput = document.getElementById('codeInput');
+  const code = codeInput.value.trim();
+  msgEl.className = 'msg';
+
+  if(!code){
+    msgEl.textContent = 'Escribe el código que te dieron en caja.';
+    msgEl.classList.add('error');
+    return;
+  }
+  if(state.folds >= 5){
+    msgEl.textContent = 'Tu grulla ya está completa.';
+    msgEl.classList.add('info');
+    return;
+  }
+  if(API_BASE.indexOf('PEGA_AQUI') === 0){
+    msgEl.textContent = 'Falta conectar esta página con el backend (API_BASE).';
+    msgEl.classList.add('error');
+    return;
+  }
+
+  const submitBtn = codeForm.querySelector('button');
+  submitBtn.disabled = true;
+  msgEl.textContent = 'Verificando…';
+  msgEl.classList.add('info');
+
+  try{
+    const url = `${API_BASE}?action=validate&code=${encodeURIComponent(code)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if(!data.ok){
+      msgEl.textContent = 'No se pudo verificar el código. Intenta de nuevo.';
+      msgEl.classList.add('error');
+      return;
+    }
+    if(!data.valid){
+      const reasons = {
+        no_encontrado: 'Código incorrecto. Pídelo en caja durante tu visita.',
+        ya_usado: 'Ese código ya fue usado. Pide uno nuevo en caja.',
+        vencido: 'Ese código venció. Pide uno nuevo en caja.',
+        falta_codigo: 'Escribe el código que te dieron en caja.'
+      };
+      msgEl.textContent = reasons[data.reason] || 'Código incorrecto o vencido.';
+      msgEl.classList.add('error');
+      return;
+    }
+
+    const fromStage = state.folds;
+    msgEl.textContent = '';
+    codeInput.value = '';
+
+    animateFoldStep(fromStage, () => {
+      state.folds += 1;
+      if(state.folds >= 5 && !state.rewardCode){
+        state.rewardCode = makeRewardCode();
+      }
+      saveState(state);
+      renderDots();
+      renderLabel();
+      renderRewardUI();
+      msgEl.textContent = state.folds >= 5 ? '¡Grulla completa!' : 'Doblez registrado. ¡Gracias por volver!';
+      msgEl.classList.add('ok');
+    });
+  }catch(err){
+    msgEl.textContent = 'No hay conexión a internet. Intenta de nuevo.';
+    msgEl.classList.add('error');
+  }finally{
+    submitBtn.disabled = false;
+  }
+});
+
+document.getElementById('usedBtn').addEventListener('click', function(){
+  if(confirm('¿Seguro que tu equipo Hanari ya aplicó el descuento? Esto reinicia tu grulla desde cero.')){
+    state = { folds:0, rewardCode:null };
+    saveState(state);
+    msgEl.textContent = '';
+    renderAll();
+  }
+});
+
+renderAll();
+</script>
+
+</body>
+</html>
