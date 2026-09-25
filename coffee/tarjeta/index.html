@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aventura Panda — Tarjeta de Fidelidad Hanari</title>
+<title>Aventura de Charny y Liur — Tarjeta de Fidelidad Hanari</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -172,7 +172,7 @@
   .panda{
     position:absolute; bottom:0; width:52px; height:52px;
     transform:translate(-50%, 0);
-    transition:left 1.3s linear;
+    transition:left 4.5s linear;
     image-rendering:pixelated;
     filter:drop-shadow(0 4px 4px rgba(0,0,0,0.25));
   }
@@ -267,7 +267,7 @@
 
 <header class="top">
   <div class="wrap">
-    <div class="kicker pixel">AVENTURA PANDA</div>
+    <div class="kicker pixel">AVENTURA DE CHARNY Y LIUR</div>
     <h1>Guía a tu panda hasta la meta,<br>visita a visita.</h1>
     <p>Cada vez que nos visitas, nuestro equipo te da un código. Ingrésalo aquí para avanzar a tu panda un checkpoint. Al llegar a la bandera final, desbloqueas tu recompensa.</p>
   </div>
@@ -332,6 +332,28 @@ const SPRITES = {
    dentro del track (que ya tiene margen lateral del 5%). */
 const LEVEL_POSITIONS = [2, 20, 40, 60, 80, 98];
 
+/* ===== Ritmo de la caminata =====
+   La caminata dura varios segundos a propósito: la idea es que se
+   note el esfuerzo de llegar al siguiente checkpoint, no que sea
+   instantáneo. STEP_INTERVAL_MS controla cada cuánto cambia el pie
+   (sprite) y cada cuánto suena el paso. */
+const WALK_DURATION_MS = 4500;
+const STEP_INTERVAL_MS = 260;
+
+/* ===== Audio de pasos (8-bit) =====
+   pasito.wav vive en la misma carpeta que este index.html
+   (coffee/tarjeta/), así que basta con el nombre del archivo. Como
+   el clip dura menos de un segundo, se reinicia y se vuelve a
+   reproducir en cada paso para simular la caminata continua. */
+const stepSound = new Audio('pasito.wav');
+stepSound.volume = 0.85;
+function playStepSound(){
+  try{
+    stepSound.currentTime = 0;
+    stepSound.play().catch(() => {});
+  }catch(e){}
+}
+
 const track = document.getElementById('track');
 const levelBadge = document.getElementById('levelBadge');
 const stageLabel = document.getElementById('stageLabel');
@@ -388,10 +410,12 @@ function renderSceneInstant(stage){
 function startWalking(){
   pandaEl.classList.add('bounce');
   let toggle = false;
+  playStepSound();
   walkTimer = setInterval(() => {
     pandaEl.src = toggle ? SPRITES.run2 : SPRITES.run1;
     toggle = !toggle;
-  }, 160);
+    playStepSound();
+  }, STEP_INTERVAL_MS);
 }
 
 function stopWalking(){
@@ -404,7 +428,7 @@ function animateAdvance(fromStage, onDone){
   const isFinal = toStage >= 5;
 
   startWalking();
-  pandaEl.style.transition = 'left 1.3s linear';
+  pandaEl.style.transition = `left ${WALK_DURATION_MS}ms linear`;
   // forzar reflow para que la transición se aplique
   void pandaEl.offsetWidth;
   pandaEl.style.left = LEVEL_POSITIONS[toStage] + '%';
@@ -425,7 +449,7 @@ function animateAdvance(fromStage, onDone){
       pandaEl.src = SPRITES.idle;
       onDone && onDone();
     }
-  }, 1300);
+  }, WALK_DURATION_MS);
 }
 
 /* ===== Estado local ===== */
