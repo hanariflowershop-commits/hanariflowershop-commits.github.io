@@ -354,6 +354,18 @@ function playStepSound(){
   }catch(e){}
 }
 
+/* ===== Audio de checkpoint (8-bit) =====
+   checkpoint.wav también vive en coffee/tarjeta/, junto al index.html.
+   Suena una vez, justo cuando el panda llega a la bandera. */
+const checkpointSound = new Audio('checkpoint.wav');
+checkpointSound.volume = 1.0;
+function playCheckpointSound(){
+  try{
+    checkpointSound.currentTime = 0;
+    checkpointSound.play().catch(() => {});
+  }catch(e){}
+}
+
 const track = document.getElementById('track');
 const levelBadge = document.getElementById('levelBadge');
 const stageLabel = document.getElementById('stageLabel');
@@ -436,6 +448,7 @@ function animateAdvance(fromStage, onDone){
   setTimeout(() => {
     stopWalking();
     markCheckpoints(toStage);
+    playCheckpointSound();
 
     if(isFinal){
       pandaEl.src = SPRITES.jump;
